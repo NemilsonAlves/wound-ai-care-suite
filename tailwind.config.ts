@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -22,6 +25,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          dark: "hsl(var(--primary-dark))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -56,6 +60,16 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        status: {
+          critical: "hsl(var(--critical))",
+          "critical-foreground": "hsl(var(--critical-foreground))",
+          warning: "hsl(var(--warning))",
+          "warning-foreground": "hsl(var(--warning-foreground))",
+          stable: "hsl(var(--stable))",
+          "stable-foreground": "hsl(var(--stable-foreground))",
+          improving: "hsl(var(--improving))",
+          "improving-foreground": "hsl(var(--improving-foreground))",
         },
       },
       borderRadius: {
