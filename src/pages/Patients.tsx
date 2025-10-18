@@ -1,4 +1,5 @@
 import { Search, Filter, Plus, Download } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PatientTable } from "@/components/patients/PatientTable";
@@ -74,6 +75,8 @@ const mockPatients = [
 ];
 
 export default function Patients() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6">
       {/* Header */}

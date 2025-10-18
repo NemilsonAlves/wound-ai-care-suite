@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
+import PatientProfile from "./pages/PatientProfile";
 import Assessments from "./pages/Assessments";
+import NewAssessment from "./pages/NewAssessment";
 import Protocols from "./pages/Protocols";
 import Materials from "./pages/Materials";
 import Analytics from "./pages/Analytics";
@@ -25,7 +27,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
           <Route path="/pacientes" element={<MainLayout><Patients /></MainLayout>} />
+          <Route path="/pacientes/:id" element={<MainLayout><PatientProfile /></MainLayout>} />
           <Route path="/avaliacoes" element={<MainLayout><Assessments /></MainLayout>} />
+          <Route path="/avaliacoes/nova" element={<MainLayout><NewAssessment /></MainLayout>} />
           <Route path="/protocolos" element={<MainLayout><Protocols /></MainLayout>} />
           <Route path="/materiais" element={<MainLayout><Materials /></MainLayout>} />
           <Route path="/analytics" element={<MainLayout><Analytics /></MainLayout>} />

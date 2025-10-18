@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Camera, Clock, User, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ const recentAssessments = [
 ];
 
 export default function Assessments() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -51,7 +53,7 @@ export default function Assessments() {
           <h1 className="text-3xl font-bold text-foreground">Avaliações de Feridas</h1>
           <p className="text-muted-foreground mt-1">Registre e acompanhe avaliações com análise por IA</p>
         </div>
-        <Button size="lg" className="gap-2">
+        <Button size="lg" className="gap-2" onClick={() => navigate('/avaliacoes/nova')}>
           <Camera className="w-5 h-5" />
           Nova Avaliação
         </Button>

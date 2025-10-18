@@ -1,4 +1,5 @@
 import { Eye, Edit, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, StatusType } from "@/components/dashboard/StatusBadge";
 import {
@@ -27,6 +28,8 @@ interface PatientTableProps {
 }
 
 export function PatientTable({ patients }: PatientTableProps) {
+  const navigate = useNavigate();
+
   const getBradenRisk = (score: number): { label: string; className: string } => {
     if (score <= 12) return { label: "Alto Risco", className: "bg-status-critical/10 text-status-critical" };
     if (score <= 14) return { label: "Risco Moderado", className: "bg-status-warning/10 text-status-warning" };
@@ -88,13 +91,13 @@ export function PatientTable({ patients }: PatientTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/pacientes/${patient.id}`)}>
                       <Eye className="w-4 h-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/avaliacoes/nova')}>
                       <Camera className="w-4 h-4" />
                     </Button>
                   </div>
