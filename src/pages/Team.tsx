@@ -1,4 +1,5 @@
 import { Users, UserPlus, Mail, Phone, Award, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,8 @@ const teamMembers = [
 ];
 
 export default function Team() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -70,7 +73,7 @@ export default function Team() {
           <h1 className="text-3xl font-bold text-foreground">Equipe</h1>
           <p className="text-muted-foreground mt-1">Gestão da equipe e performance</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => navigate('/equipe/novo')}>
           <UserPlus className="w-5 h-5" />
           Adicionar Membro
         </Button>

@@ -1,4 +1,5 @@
 import { Package, AlertTriangle, TrendingDown, ShoppingCart, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,7 @@ const materials = [
 ];
 
 export default function Materials() {
+  const navigate = useNavigate();
   const lowStockCount = materials.filter(m => m.stock < m.minStock).length;
   const totalValue = materials.reduce((acc, m) => acc + (m.stock * m.cost), 0);
 
@@ -75,7 +77,7 @@ export default function Materials() {
           <h1 className="text-3xl font-bold text-foreground">Gestão de Materiais</h1>
           <p className="text-muted-foreground mt-1">Controle de estoque e curativos</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => navigate('/materiais/requisicao')}>
           <ShoppingCart className="w-5 h-5" />
           Nova Requisição
         </Button>

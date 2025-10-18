@@ -85,7 +85,7 @@ export default function Patients() {
           <h1 className="text-3xl font-bold text-foreground mb-2">Pacientes</h1>
           <p className="text-muted-foreground">Gerencie todos os pacientes sob cuidado da Comissão de Pele</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => navigate('/pacientes/novo')}>
           <Plus className="w-4 h-4" />
           Novo Paciente
         </Button>

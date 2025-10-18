@@ -1,4 +1,5 @@
 import { Search, Star, TrendingUp, FileText, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,8 @@ const recommendations = [
 ];
 
 export default function Protocols() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -83,7 +86,7 @@ export default function Protocols() {
           <h1 className="text-3xl font-bold text-foreground">Protocolos & Recomendações</h1>
           <p className="text-muted-foreground mt-1">Diretrizes baseadas em evidências e recomendações por IA</p>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={() => navigate('/protocolos/novo')}>
           <FileText className="w-5 h-5" />
           Adicionar Protocolo
         </Button>
