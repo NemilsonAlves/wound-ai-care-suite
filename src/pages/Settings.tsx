@@ -216,6 +216,56 @@ export default function Settings() {
                 </div>
                 <Switch defaultChecked />
               </div>
+              
+              <div className="mt-6 space-y-6 pt-6 border-t">
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Integração com IA</h3>
+                  <p className="text-sm text-muted-foreground">Configure as chaves de API dos provedores de IA</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="openai-key">OpenAI API Key</Label>
+                    <Input
+                      id="openai-key"
+                      type="password"
+                      placeholder="sk-..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Para usar modelos GPT-4, GPT-4o
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="claude-key">Claude API Key (Anthropic)</Label>
+                    <Input
+                      id="claude-key"
+                      type="password"
+                      placeholder="sk-ant-..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Para usar modelos Claude 3 Opus, Sonnet
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="groq-key">Groq API Key</Label>
+                    <Input
+                      id="groq-key"
+                      type="password"
+                      placeholder="gsk_..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Para inferência rápida com Llama, Mixtral
+                    </p>
+                  </div>
+
+                  <Button className="w-full mt-4">
+                    Salvar Configurações de IA
+                  </Button>
+                </div>
+              </div>
+              
               <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
