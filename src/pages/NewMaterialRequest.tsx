@@ -136,6 +136,7 @@ export default function NewMaterialRequest() {
                     <SelectItem value="Ortopedia">Ortopedia</SelectItem>
                     <SelectItem value="Emergência">Emergência</SelectItem>
                     <SelectItem value="Comissão de Pele">Comissão de Pele</SelectItem>
+                    <SelectItem value="Consultório">Consultório</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

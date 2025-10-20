@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Camera, Upload, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Camera, Upload, AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,13 @@ export default function NewAssessment() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState("");
-  const [location, setLocation] = useState("");
+  const [locations, setLocations] = useState<string[]>([]);
   const [painLevel, setPainLevel] = useState([0]);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const aiAnalysis = {
@@ -36,7 +41,63 @@ export default function NewAssessment() {
     confidence: 92,
   };
 
-  const handlePhotoCapture = () => {
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        setIsCameraActive(true);
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível acessar a câmera",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+      setIsCameraActive(false);
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg');
+        setCapturedImage(imageData);
+        stopCamera();
+        analyzeImage(imageData);
+      }
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageData = event.target?.result as string;
+        setCapturedImage(imageData);
+        analyzeImage(imageData);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const analyzeImage = (imageData: string) => {
     setIsAnalyzing(true);
     // Simulate AI analysis
     setTimeout(() => {
@@ -48,6 +109,12 @@ export default function NewAssessment() {
         description: "A IA processou a imagem com 92% de confiança",
       });
     }, 3000);
+  };
+
+  const removePhoto = () => {
+    setCapturedImage(null);
+    setAnalysisComplete(false);
+    stopCamera();
   };
 
   const handleSubmit = () => {
@@ -116,14 +183,14 @@ export default function NewAssessment() {
               </div>
 
               <div>
-                <Label className="mb-4 block">Localização da Lesão</Label>
-                <BodyMapSelector onLocationSelect={setLocation} selectedLocation={location} />
+                <Label className="mb-4 block">Localização das Lesões</Label>
+                <BodyMapSelector onLocationSelect={setLocations} selectedLocations={locations} />
               </div>
 
               <Button
                 className="w-full"
                 onClick={() => setCurrentStep(1)}
-                disabled={!selectedPatient || !location}
+                disabled={!selectedPatient || locations.length === 0}
               >
                 Continuar para Captura de Foto
               </Button>
@@ -138,32 +205,68 @@ export default function NewAssessment() {
               <CardTitle>Captura de Foto</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex flex-col items-center justify-center min-h-[300px] bg-muted/30 rounded-lg border-2 border-dashed border-border">
-                {!isAnalyzing ? (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              
+              <div className="flex flex-col items-center justify-center min-h-[400px] bg-muted/30 rounded-lg border-2 border-dashed border-border overflow-hidden relative">
+                {capturedImage ? (
+                  <div className="relative w-full h-full">
+                    <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
+                    {!isAnalyzing && (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-2 right-2"
+                        onClick={removePhoto}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {isAnalyzing && (
+                      <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
+                        <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />
+                        <p className="text-foreground font-semibold mb-2">Analisando Imagem...</p>
+                        <p className="text-sm text-muted-foreground">
+                          Detectando bordas → Medindo → Classificando
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : isCameraActive ? (
+                  <div className="relative w-full h-full">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-contain" />
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4">
+                      <Button size="lg" onClick={capturePhoto} className="gap-2">
+                        <Camera className="w-5 h-5" />
+                        Capturar
+                      </Button>
+                      <Button size="lg" variant="outline" onClick={stopCamera}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
                   <>
                     <Camera className="w-16 h-16 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground mb-4">
                       Posicione a régua ao lado da ferida
                     </p>
                     <div className="flex gap-4">
-                      <Button size="lg" onClick={handlePhotoCapture} className="gap-2">
+                      <Button size="lg" onClick={startCamera} className="gap-2">
                         <Camera className="w-5 h-5" />
-                        Capturar Foto
+                        Abrir Câmera
                       </Button>
-                      <Button size="lg" variant="outline" className="gap-2">
+                      <Button size="lg" variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
                         <Upload className="w-5 h-5" />
                         Upload
                       </Button>
                     </div>
                   </>
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />
-                    <p className="text-foreground font-semibold mb-2">Analisando Imagem...</p>
-                    <p className="text-sm text-muted-foreground">
-                      Detectando bordas → Medindo → Classificando
-                    </p>
-                  </div>
                 )}
               </div>
 

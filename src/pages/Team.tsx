@@ -131,6 +131,19 @@ export default function Team() {
         </Card>
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Button variant="outline" className="gap-2" onClick={() => navigate('/equipe/escalas')}>
+          <Calendar className="w-5 h-5" />
+          Ver Escalas
+        </Button>
+        <Button variant="outline" className="gap-2" onClick={() => navigate('/equipe/performance')}>
+          <TrendingUp className="w-5 h-5" />
+          Performance
+        </Button>
+        <Button variant="outline" className="gap-2">Relatórios</Button>
+      </div>
+
       {/* Search */}
       <div className="flex gap-4">
         <Input placeholder="Buscar membro da equipe..." className="flex-1" />

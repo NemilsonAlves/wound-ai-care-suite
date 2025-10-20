@@ -14,6 +14,11 @@ import Protocols from "./pages/Protocols";
 import NewProtocol from "./pages/NewProtocol";
 import Materials from "./pages/Materials";
 import NewMaterialRequest from "./pages/NewMaterialRequest";
+import MaterialCategories from "./pages/MaterialCategories";
+import MaterialSuppliers from "./pages/MaterialSuppliers";
+import MaterialHistory from "./pages/MaterialHistory";
+import TeamSchedule from "./pages/TeamSchedule";
+import TeamPerformance from "./pages/TeamPerformance";
 import Analytics from "./pages/Analytics";
 import Team from "./pages/Team";
 import NewTeamMember from "./pages/NewTeamMember";
@@ -39,9 +44,14 @@ const App = () => (
           <Route path="/protocolos/novo" element={<MainLayout><NewProtocol /></MainLayout>} />
           <Route path="/materiais" element={<MainLayout><Materials /></MainLayout>} />
           <Route path="/materiais/requisicao" element={<MainLayout><NewMaterialRequest /></MainLayout>} />
+          <Route path="/materiais/categorias" element={<MainLayout><MaterialCategories /></MainLayout>} />
+          <Route path="/materiais/fornecedores" element={<MainLayout><MaterialSuppliers /></MainLayout>} />
+          <Route path="/materiais/historico" element={<MainLayout><MaterialHistory /></MainLayout>} />
           <Route path="/analytics" element={<MainLayout><Analytics /></MainLayout>} />
           <Route path="/equipe" element={<MainLayout><Team /></MainLayout>} />
           <Route path="/equipe/novo" element={<MainLayout><NewTeamMember /></MainLayout>} />
+          <Route path="/equipe/escalas" element={<MainLayout><TeamSchedule /></MainLayout>} />
+          <Route path="/equipe/performance" element={<MainLayout><TeamPerformance /></MainLayout>} />
           <Route path="/configuracoes" element={<MainLayout><Settings /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

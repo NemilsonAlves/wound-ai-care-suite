@@ -131,13 +131,32 @@ export default function Materials() {
         </Card>
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Button variant="outline" className="gap-2" onClick={() => navigate('/materiais/categorias')}>
+          <Package className="w-5 h-5" />
+          Categorias
+        </Button>
+        <Button variant="outline" className="gap-2" onClick={() => navigate('/materiais/fornecedores')}>
+          <TrendingDown className="w-5 h-5" />
+          Fornecedores
+        </Button>
+        <Button variant="outline" className="gap-2" onClick={() => navigate('/materiais/historico')}>
+          <TrendingDown className="w-5 h-5" />
+          Histórico
+        </Button>
+        <Button variant="outline" className="gap-2">
+          Relatórios
+        </Button>
+      </div>
+
       {/* Search and Filters */}
       <div className="flex gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar materiais..." className="pl-10" />
         </div>
-        <Button variant="outline">Filtrar por Categoria</Button>
+        <Button variant="outline">Filtrar</Button>
         <Button variant="outline">Exportar</Button>
       </div>
 

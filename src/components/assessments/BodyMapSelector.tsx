@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 interface BodyMapSelectorProps {
-  onLocationSelect: (location: string) => void;
-  selectedLocation?: string;
+  onLocationSelect: (locations: string[]) => void;
+  selectedLocations?: string[];
 }
 
 const bodyLocations = [
@@ -24,8 +24,16 @@ const bodyLocations = [
   { id: "left-heel", x: 180, y: 350, label: "Calcanhar E" },
 ];
 
-export function BodyMapSelector({ onLocationSelect, selectedLocation }: BodyMapSelectorProps) {
+export function BodyMapSelector({ onLocationSelect, selectedLocations = [] }: BodyMapSelectorProps) {
   const [view, setView] = useState<"front" | "back">("front");
+
+  const handleLocationClick = (locationId: string) => {
+    if (selectedLocations.includes(locationId)) {
+      onLocationSelect(selectedLocations.filter(id => id !== locationId));
+    } else {
+      onLocationSelect([...selectedLocations, locationId]);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -59,7 +67,7 @@ export function BodyMapSelector({ onLocationSelect, selectedLocation }: BodyMapS
           style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))" }}
         >
           {/* Body outline */}
-          <g className="fill-muted stroke-border" strokeWidth="2">
+          <g className={view === "front" ? "fill-muted stroke-border" : "fill-muted/60 stroke-border"} strokeWidth="2">
             {/* Head */}
             <circle cx="150" cy="30" r="20" />
             {/* Neck */}
@@ -87,24 +95,32 @@ export function BodyMapSelector({ onLocationSelect, selectedLocation }: BodyMapS
               cy={location.y}
               r="15"
               className={`cursor-pointer transition-all ${
-                selectedLocation === location.id
+                selectedLocations.includes(location.id)
                   ? "fill-status-critical/80 stroke-status-critical"
                   : "fill-primary/20 stroke-primary hover:fill-primary/40"
               }`}
               strokeWidth="2"
-              onClick={() => onLocationSelect(location.id)}
+              onClick={() => handleLocationClick(location.id)}
             >
               <title>{location.label}</title>
             </circle>
           ))}
         </svg>
         
-        {selectedLocation && (
-          <p className="text-center mt-2 text-sm text-muted-foreground">
-            Localização selecionada: <strong className="text-foreground">
-              {bodyLocations.find(l => l.id === selectedLocation)?.label}
-            </strong>
-          </p>
+        {selectedLocations.length > 0 && (
+          <div className="text-center mt-2 text-sm text-muted-foreground">
+            <p className="mb-1">Localizações selecionadas ({selectedLocations.length}):</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {selectedLocations.map(id => {
+                const location = bodyLocations.find(l => l.id === id);
+                return (
+                  <span key={id} className="px-2 py-1 bg-status-critical/10 text-status-critical rounded-md font-medium">
+                    {location?.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
     </div>

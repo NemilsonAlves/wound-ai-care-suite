@@ -1,10 +1,21 @@
-import { Search, Bell, Moon, Sun } from "lucide-react";
+import { Search, Bell, Moon, Sun, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export function TopBar() {
   const [isDark, setIsDark] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -14,6 +25,15 @@ export function TopBar() {
       root.classList.remove("dark");
     }
   }, [isDark]);
+
+  const handleLogout = () => {
+    toast({
+      title: "Sessão Encerrada",
+      description: "Você foi desconectado com sucesso",
+    });
+    // Aqui você integraria com o sistema de autenticação
+    navigate("/");
+  };
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
@@ -46,9 +66,26 @@ export function TopBar() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-status-critical rounded-full" />
         </Button>
 
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center ml-2">
-          <span className="text-sm font-semibold text-primary">EN</span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full ml-2">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-semibold text-primary">EN</span>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
+              Configurações
+            </DropdownMenuItem>
+            <DropdownMenuItem>Meu Perfil</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-status-critical">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair do Sistema
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
