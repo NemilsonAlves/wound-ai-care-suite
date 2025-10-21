@@ -207,7 +207,7 @@ export default function Materials() {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm">Solicitar</Button>
-                    <Button variant="ghost" size="sm">Editar</Button>
+                    <Button size="sm">Editar</Button>
                   </div>
                 </div>
               );

@@ -75,10 +75,12 @@ export function TopBar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate("/meu-perfil")}>
+              Meu Perfil
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
               Configurações
             </DropdownMenuItem>
-            <DropdownMenuItem>Meu Perfil</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-status-critical">
               <LogOut className="w-4 h-4 mr-2" />

@@ -1,7 +1,10 @@
-import { Users, Activity, TrendingUp, DollarSign } from "lucide-react";
+import { Users, Activity, TrendingUp, DollarSign, Eye, Edit, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { AlertCard } from "@/components/dashboard/AlertCard";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 
 const evolutionData = [
@@ -48,7 +51,45 @@ const priorityPatients = [
   { name: "Pedro Oliveira", room: "410-A", wounds: 2, status: "warning" as const },
 ];
 
+const recentAssessments = [
+  {
+    id: 1,
+    patient: "Maria Silva",
+    wound: "Úlcera por Pressão",
+    stage: "Estágio III",
+    location: "Sacral",
+    date: "2025-01-15",
+    time: "14:30",
+    nurse: "Enf. Ana Santos",
+    status: "critical" as const,
+  },
+  {
+    id: 2,
+    patient: "João Santos",
+    wound: "Úlcera Diabética",
+    stage: "Grau 2",
+    location: "Pé Direito",
+    date: "2025-01-15",
+    time: "11:20",
+    nurse: "Enf. Carlos Lima",
+    status: "warning" as const,
+  },
+  {
+    id: 3,
+    patient: "Ana Costa",
+    wound: "Queimadura",
+    stage: "2º Grau",
+    location: "Braço Esq.",
+    date: "2025-01-14",
+    time: "16:45",
+    nurse: "Enf. Maria Oliveira",
+    status: "improving" as const,
+  },
+];
+
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -146,6 +187,73 @@ export default function Dashboard() {
         {/* Critical Alerts */}
         <AlertCard alerts={alerts} />
       </div>
+
+      {/* Recent Assessments */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground text-xl">Avaliações Recentes</h3>
+          <Button variant="outline" size="sm">Ver Todas</Button>
+        </div>
+        <div className="space-y-3">
+          {recentAssessments.map((assessment) => (
+            <div
+              key={assessment.id}
+              className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+            >
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Camera className="w-6 h-6 text-primary" />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground">{assessment.patient}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {assessment.wound} • {assessment.stage} • {assessment.location}
+                    </p>
+                  </div>
+                  
+                  <div className="text-right shrink-0">
+                    <p className="text-sm text-muted-foreground">{assessment.date}</p>
+                    <p className="text-sm text-muted-foreground">{assessment.time}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 mt-2">
+                  <p className="text-sm text-muted-foreground">{assessment.nurse}</p>
+                  <Badge
+                    variant={
+                      assessment.status === "critical"
+                        ? "destructive"
+                        : assessment.status === "warning"
+                        ? "secondary"
+                        : "default"
+                    }
+                  >
+                    {assessment.status === "critical"
+                      ? "Crítico"
+                      : assessment.status === "warning"
+                      ? "Atenção"
+                      : "Melhorando"}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="flex gap-2 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Eye className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Camera className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Priority Patients and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

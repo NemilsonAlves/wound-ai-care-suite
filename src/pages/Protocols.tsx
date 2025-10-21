@@ -120,9 +120,9 @@ export default function Protocols() {
                         <Badge variant="secondary" className="mt-1">{protocol.category}</Badge>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-status-warning">
-                      {[...Array(protocol.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
+                    <div className="flex items-center gap-0.5 text-status-warning">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-status-warning" />
                       ))}
                     </div>
                   </div>
