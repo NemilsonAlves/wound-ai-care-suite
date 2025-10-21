@@ -217,7 +217,7 @@ export default function Team() {
                   </div>
                   <div className="flex gap-2 mt-2">
                     <Button variant="outline" size="sm" className="flex-1">Mensagem</Button>
-                    <Button size="sm" className="flex-1">Ver Perfil</Button>
+                    <Button size="sm" className="flex-1" onClick={() => navigate(`/perfil/${member.id}`)}>Ver Perfil</Button>
                   </div>
                 </CardContent>
               </Card>

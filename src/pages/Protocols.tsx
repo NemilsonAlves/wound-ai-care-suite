@@ -134,7 +134,7 @@ export default function Protocols() {
                       <TrendingUp className="w-4 h-4" />
                       {protocol.usage} usos este mês
                     </span>
-                    <Button size="sm">Ver Protocolo</Button>
+                    <Button size="sm" onClick={() => navigate(`/protocolos/${protocol.id}`)}>Ver Protocolo</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -185,7 +185,9 @@ export default function Protocols() {
                         </div>
                       </div>
                     </div>
-                    <Button>Prescrever</Button>
+                    <Button onClick={() => {
+                      navigate('/avaliacoes/nova', { state: { recommendedProduct: rec.product } });
+                    }}>Prescrever</Button>
                   </div>
                 </CardContent>
               </Card>

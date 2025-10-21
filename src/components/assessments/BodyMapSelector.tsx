@@ -88,23 +88,29 @@ export function BodyMapSelector({ onLocationSelect, selectedLocations = [] }: Bo
           </g>
 
           {/* Clickable zones */}
-          {bodyLocations.map((location) => (
-            <circle
-              key={location.id}
-              cx={location.x}
-              cy={location.y}
-              r="15"
-              className={`cursor-pointer transition-all ${
-                selectedLocations.includes(location.id)
-                  ? "fill-status-critical/80 stroke-status-critical"
-                  : "fill-primary/20 stroke-primary hover:fill-primary/40"
-              }`}
-              strokeWidth="2"
-              onClick={() => handleLocationClick(location.id)}
-            >
-              <title>{location.label}</title>
-            </circle>
-          ))}
+          {bodyLocations.map((location) => {
+            const isSelected = selectedLocations.includes(location.id);
+            const frontColor = view === "front" ? "fill-blue-500/80 stroke-blue-600" : "fill-blue-500/20 stroke-blue-500 hover:fill-blue-500/40";
+            const backColor = view === "back" ? "fill-red-500/80 stroke-red-600" : "fill-red-500/20 stroke-red-500 hover:fill-red-500/40";
+            
+            return (
+              <circle
+                key={location.id}
+                cx={location.x}
+                cy={location.y}
+                r="15"
+                className={`cursor-pointer transition-all ${
+                  isSelected
+                    ? (view === "front" ? "fill-blue-600/90 stroke-blue-700" : "fill-red-600/90 stroke-red-700")
+                    : (view === "front" ? frontColor : backColor)
+                }`}
+                strokeWidth="2"
+                onClick={() => handleLocationClick(location.id)}
+              >
+                <title>{location.label}</title>
+              </circle>
+            );
+          })}
         </svg>
         
         {selectedLocations.length > 0 && (
@@ -113,8 +119,9 @@ export function BodyMapSelector({ onLocationSelect, selectedLocations = [] }: Bo
             <div className="flex flex-wrap gap-2 justify-center">
               {selectedLocations.map(id => {
                 const location = bodyLocations.find(l => l.id === id);
+                const bgColor = view === "front" ? "bg-blue-500/10 text-blue-700" : "bg-red-500/10 text-red-700";
                 return (
-                  <span key={id} className="px-2 py-1 bg-status-critical/10 text-status-critical rounded-md font-medium">
+                  <span key={id} className={`px-2 py-1 ${bgColor} rounded-md font-medium`}>
                     {location?.label}
                   </span>
                 );

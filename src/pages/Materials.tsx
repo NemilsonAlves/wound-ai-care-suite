@@ -206,8 +206,8 @@ export default function Materials() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">Solicitar</Button>
-                    <Button size="sm">Editar</Button>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/materiais/requisicao', { state: { materialId: material.id } })}>Solicitar</Button>
+                    <Button size="sm" onClick={() => navigate(`/materiais/editar/${material.id}`)}>Editar</Button>
                   </div>
                 </div>
               );
