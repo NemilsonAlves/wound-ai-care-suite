@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Star, Users, TrendingUp, BookOpen, Filter } from "lucide-react";
+import { Search, Star, Users, TrendingUp, BookOpen, Filter, FileText, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
