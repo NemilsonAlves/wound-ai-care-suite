@@ -1,4 +1,4 @@
-import { Home, Users, ClipboardCheck, BookOpen, Package, BarChart3, UsersRound, Settings, ChevronLeft } from "lucide-react";
+import { Home, Users, ClipboardCheck, BookOpen, Package, BarChart3, UsersRound, Building2, Settings, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
@@ -12,6 +12,7 @@ const menuItems = [
   { icon: Package, label: "Materiais", path: "/materiais" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: UsersRound, label: "Equipe", path: "/equipe" },
+  { icon: Building2, label: "Setores", path: "/setores" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 

@@ -1,33 +1,25 @@
-# Welcome to your Lovable project
+# WoundCare AI Suite
+
+Sistema de gerenciamento de feridas com inteligência artificial para ambientes hospitalares.
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/8f0411ba-8129-4c3a-91c9-f4805763be46
+**Node**: 18.17.1
 
-## How can I edit this code?
+## Development
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/8f0411ba-8129-4c3a-91c9-f4805763be46) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Para trabalhar localmente, clone este repositório e faça as alterações necessárias.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
-```sh
+```bash
 # Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd <YOUR_PROJECT_DIRECTORY>
 
 # Step 3: Install the necessary dependencies.
 npm i
@@ -36,38 +28,24 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Tech Stack
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, Shadcn/ui
+- **State Management**: TanStack Query (React Query)
+- **Routing**: React Router DOM
+- **Forms**: React Hook Form + Zod
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
-**Use GitHub Codespaces**
+## Features
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/8f0411ba-8129-4c3a-91c9-f4805763be46) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Dashboard com KPIs médicos
+- Gerenciamento de pacientes
+- Sistema de avaliação de feridas
+- Mapa corporal interativo
+- Protocolos de tratamento
+- Controle de materiais
+- Analytics e relatórios
+- Gerenciamento de equipe
+- Configurações do sistema

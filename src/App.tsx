@@ -11,6 +11,10 @@ import NewPatient from "./pages/NewPatient";
 import Assessments from "./pages/Assessments";
 import NewAssessment from "./pages/NewAssessment";
 import Protocols from "./pages/Protocols";
+import BradenProtocol from "./pages/BradenProtocol";
+import PushProtocol from "./pages/PushProtocol";
+import TimeProtocol from "./pages/TimeProtocol";
+import WagnerProtocol from "./pages/WagnerProtocol";
 import NewProtocol from "./pages/NewProtocol";
 import Materials from "./pages/Materials";
 import NewMaterialRequest from "./pages/NewMaterialRequest";
@@ -24,6 +28,7 @@ import Team from "./pages/Team";
 import NewTeamMember from "./pages/NewTeamMember";
 import Settings from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
+import Sectors from "./pages/Sectors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +47,10 @@ const App = () => (
           <Route path="/avaliacoes" element={<MainLayout><Assessments /></MainLayout>} />
           <Route path="/avaliacoes/nova" element={<MainLayout><NewAssessment /></MainLayout>} />
           <Route path="/protocolos" element={<MainLayout><Protocols /></MainLayout>} />
+          <Route path="/protocolos/braden" element={<MainLayout><BradenProtocol /></MainLayout>} />
+          <Route path="/protocolos/push" element={<MainLayout><PushProtocol /></MainLayout>} />
+          <Route path="/protocolos/time" element={<MainLayout><TimeProtocol /></MainLayout>} />
+          <Route path="/protocolos/wagner" element={<MainLayout><WagnerProtocol /></MainLayout>} />
           <Route path="/protocolos/novo" element={<MainLayout><NewProtocol /></MainLayout>} />
           <Route path="/materiais" element={<MainLayout><Materials /></MainLayout>} />
           <Route path="/materiais/requisicao" element={<MainLayout><NewMaterialRequest /></MainLayout>} />
@@ -53,6 +62,7 @@ const App = () => (
           <Route path="/equipe/novo" element={<MainLayout><NewTeamMember /></MainLayout>} />
           <Route path="/equipe/escalas" element={<MainLayout><TeamSchedule /></MainLayout>} />
           <Route path="/equipe/performance" element={<MainLayout><TeamPerformance /></MainLayout>} />
+          <Route path="/setores" element={<MainLayout><Sectors /></MainLayout>} />
           <Route path="/configuracoes" element={<MainLayout><Settings /></MainLayout>} />
           <Route path="/meu-perfil" element={<MainLayout><MyProfile /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

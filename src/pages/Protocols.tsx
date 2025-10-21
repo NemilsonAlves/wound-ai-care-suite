@@ -1,8 +1,9 @@
-import { Search, Star, TrendingUp, FileText, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Search, Star, Users, TrendingUp, BookOpen, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -12,36 +13,40 @@ const protocols = [
     name: "Escala de Braden",
     description: "Avaliação de risco para desenvolvimento de úlceras por pressão",
     category: "Avaliação",
-    usage: 245,
+    usage: "245 usos este mês",
     rating: 5,
-    icon: "📊"
+    icon: "📊",
+    route: "/protocolos/braden"
   },
   {
     id: 2,
     name: "PUSH Tool",
     description: "Ferramenta de monitoramento de cicatrização de úlceras por pressão",
     category: "Monitoramento",
-    usage: 189,
+    usage: "189 usos este mês",
     rating: 5,
-    icon: "📈"
+    icon: "📏",
+    route: "/protocolos/push"
   },
   {
     id: 3,
     name: "TIME Framework",
     description: "Preparo do leito da ferida - Tecido, Inflamação, Umidade, Borda",
     category: "Tratamento",
-    usage: 312,
+    usage: "312 usos este mês",
     rating: 5,
-    icon: "🔬"
+    icon: "⏰",
+    route: "/protocolos/time"
   },
   {
     id: 4,
     name: "Wagner Classification",
     description: "Classificação de úlceras em pé diabético",
     category: "Classificação",
-    usage: 156,
-    rating: 4,
-    icon: "🦶"
+    usage: "156 usos este mês",
+    rating: 5,
+    icon: "🦶",
+    route: "/protocolos/wagner"
   }
 ];
 
@@ -77,6 +82,8 @@ const recommendations = [
 
 export default function Protocols() {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -134,7 +141,7 @@ export default function Protocols() {
                       <TrendingUp className="w-4 h-4" />
                       {protocol.usage} usos este mês
                     </span>
-                    <Button size="sm" onClick={() => navigate(`/protocolos/${protocol.id}`)}>Ver Protocolo</Button>
+                    <Button size="sm" onClick={() => navigate(protocol.route)}>Ver Protocolo</Button>
                   </div>
                 </CardContent>
               </Card>
