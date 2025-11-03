@@ -1,4 +1,4 @@
-import { Home, Users, ClipboardCheck, BookOpen, Package, BarChart3, UsersRound, Building2, Settings, ChevronLeft } from "lucide-react";
+import { Home, Users, ClipboardCheck, BookOpen, Package, BarChart3, UsersRound, Building2, Settings, ChevronLeft, CreditCard, MessageCircle, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
@@ -13,6 +13,10 @@ const menuItems = [
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: UsersRound, label: "Equipe", path: "/equipe" },
   { icon: Building2, label: "Setores", path: "/setores" },
+  { icon: CreditCard, label: "Pagamentos", path: "/payment" },
+  { icon: MessageCircle, label: "WhatsApp", path: "/whatsapp" },
+  { icon: Users, label: "Usuários", path: "/gerenciar-usuarios" },
+  { icon: Briefcase, label: "Config. Negócio", path: "/configuracoes-negocio" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 

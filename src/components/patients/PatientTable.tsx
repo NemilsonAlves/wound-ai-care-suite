@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Eye, Edit, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ interface PatientTableProps {
   patients: Patient[];
 }
 
-export function PatientTable({ patients }: PatientTableProps) {
+const PatientTable = ({ patients }: PatientTableProps) => {
   const navigate = useNavigate();
 
   const getBradenRisk = (score: number): { label: string; className: string } => {
@@ -110,3 +111,5 @@ export function PatientTable({ patients }: PatientTableProps) {
     </div>
   );
 }
+
+export default memo(PatientTable);

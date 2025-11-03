@@ -1,111 +1,129 @@
-import { Camera, FileText, MessageSquare, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowLeft, Edit, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { Progress } from "@/components/ui/progress";
-
-const patient = {
-  id: "1",
-  name: "Maria Silva",
-  age: 68,
-  gender: "Feminino",
-  room: "201-A",
-  record: "12345678",
-  sector: "UTI",
-  bradenScore: 11,
-  admissionDate: "15/10/2024",
-  allergies: ["Penicilina", "Látex"],
-  comorbidities: ["Diabetes Mellitus tipo 2", "Hipertensão", "Obesidade"],
-};
-
-const wounds = [
-  {
-    id: 1,
-    type: "Úlcera por Pressão",
-    location: "Sacral",
-    stage: "III",
-    size: "4.2 x 3.1 cm",
-    area: "13.02 cm²",
-    status: "critical" as const,
-    lastAssessment: "Hoje, 09:30",
-    evolution: -15,
-  },
-  {
-    id: 2,
-    type: "Úlcera por Pressão",
-    location: "Calcanhar Direito",
-    stage: "II",
-    size: "2.8 x 2.1 cm",
-    area: "5.88 cm²",
-    status: "warning" as const,
-    lastAssessment: "Ontem, 14:20",
-    evolution: 8,
-  },
-  {
-    id: 3,
-    type: "Úlcera por Pressão",
-    location: "Trocanter Esquerdo",
-    stage: "II",
-    size: "1.5 x 1.2 cm",
-    area: "1.80 cm²",
-    status: "improving" as const,
-    lastAssessment: "Há 2 dias",
-    evolution: 22,
-  },
-];
-
-const timeline = [
-  {
-    date: "18/01/2025 09:30",
-    event: "Avaliação de Ferida",
-    description: "Lesão sacral apresenta deterioração - aumento de 15% na área",
-    type: "critical" as const,
-    user: "Enf. Ana Paula",
-  },
-  {
-    date: "17/01/2025 14:20",
-    event: "Troca de Curativo",
-    description: "Realizada troca conforme protocolo. Exsudato moderado.",
-    type: "stable" as const,
-    user: "Enf. Carlos Silva",
-  },
-  {
-    date: "16/01/2025 11:15",
-    event: "Score Braden",
-    description: "Score caiu para 11 - Risco muito alto",
-    type: "warning" as const,
-    user: "Enf. Maria Santos",
-  },
-  {
-    date: "15/01/2025 08:00",
-    event: "Prescrição Atualizada",
-    description: "Alterado curativo para Hidrofibra com Prata",
-    type: "stable" as const,
-    user: "Dr. João Mendes",
-  },
-];
-
-const protocols = [
-  { name: "Mudança de Decúbito", frequency: "2/2h", status: "active" },
-  { name: "Escala de Braden", frequency: "Diária", status: "active" },
-  { name: "Protocolo TIME", frequency: "Conforme avaliação", status: "active" },
-  { name: "Suporte Nutricional", frequency: "Contínuo", status: "active" },
-];
-
-const costs = {
-  monthly: 1245.00,
-  materials: [
-    { name: "Hidrofibra com Prata", quantity: 12, unitCost: 45.00, total: 540.00 },
-    { name: "Espuma com Silicone", quantity: 8, unitCost: 32.00, total: 256.00 },
-    { name: "Hidrogel", quantity: 6, unitCost: 38.00, total: 228.00 },
-    { name: "Filme Transparente", quantity: 15, unitCost: 14.70, total: 220.50 },
-  ],
-};
+import { useToast } from "@/hooks/use-toast";
+import { PatientService } from "@/services/patientService";
+import { Patient } from "@/types/patient";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import ClinicalEvolution from "@/components/evolution/ClinicalEvolution";
+import PatientTimeline from "@/components/timeline/PatientTimeline";
+import { supabase } from "@/lib/supabase";
 
 export default function PatientProfile() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadPatient = async () => {
+      if (!id) {
+        setError("ID do paciente não fornecido");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const patientData = await PatientService.getById(id);
+        setPatient(patientData);
+      } catch (err) {
+        console.error("Erro ao carregar paciente:", err);
+        setError("Erro ao carregar dados do paciente");
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os dados do paciente",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPatient();
+  }, [id, toast]);
+
+  useEffect(() => {
+    const loadAuditLogs = async () => {
+      if (!id) return;
+      try {
+        const { data, error } = await supabase
+          .from('audit_logs')
+          .select('id, action, details, created_at')
+          .eq('patient_id', id)
+          .order('created_at', { ascending: false });
+        if (!error) {
+          setAuditLogs(data || []);
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar audit logs:', e);
+      }
+    };
+    loadAuditLogs();
+  }, [id]);
+
+  const handleEditPatient = () => {
+    navigate(`/pacientes/${id}/editar`);
+  };
+
+  const calculateAge = (birthDate: string): number => {
+    const birth = parseISO(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+  const formatDate = (dateString: string): string => {
+    try {
+      return format(parseISO(dateString), "dd/MM/yyyy", { locale: ptBR });
+    } catch {
+      return dateString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Carregando dados do paciente...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !patient) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <AlertCircle className="w-12 h-12 text-destructive" />
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">Erro ao carregar paciente</h2>
+          <p className="text-muted-foreground">{error || "Paciente não encontrado"}</p>
+        </div>
+        <Button onClick={() => navigate("/pacientes")} variant="outline">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar para lista
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -114,51 +132,50 @@ export default function PatientProfile() {
           <div className="flex items-start gap-6">
             <Avatar className="w-20 h-20">
               <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                {patient.name.split(" ").map((n) => n[0]).join("")}
+                {patient.full_name.split(" ").map((n) => n[0]).join("").toUpperCase()}
               </AvatarFallback>
             </Avatar>
 
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">{patient.name}</h1>
+                  <h1 className="text-3xl font-bold text-foreground">{patient.full_name}</h1>
                   <div className="flex items-center gap-4 mt-2 text-muted-foreground">
-                    <span>{patient.age} anos</span>
+                    <span>{calculateAge(patient.birth_date)} anos</span>
                     <span>•</span>
-                    <span>{patient.gender}</span>
+                    <span className="capitalize">{patient.gender}</span>
                     <span>•</span>
-                    <span>Leito {patient.room}</span>
-                    <span>•</span>
-                    <span>Prontuário {patient.record}</span>
+                    <span>{patient.phone}</span>
+                    {patient.email && (
+                      <>
+                        <span>•</span>
+                        <span>{patient.email}</span>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {patient.allergies.map((allergy) => (
-                      <Badge key={allergy} variant="destructive" className="gap-1">
+                    <Badge variant="outline" className="gap-1">
+                      <span className="capitalize">{patient.specialty}</span>
+                    </Badge>
+                    {patient.allergies && (
+                      <Badge variant="destructive" className="gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        {allergy}
+                        Alergias: {patient.allergies}
                       </Badge>
-                    ))}
-                    {patient.comorbidities.map((condition) => (
-                      <Badge key={condition} variant="secondary">
-                        {condition}
+                    )}
+                    {patient.medical_history && (
+                      <Badge variant="secondary">
+                        Histórico Médico
                       </Badge>
-                    ))}
+                    )}
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="gap-2">
-                    <Camera className="w-4 h-4" />
-                    Nova Avaliação
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <FileText className="w-4 h-4" />
-                    Prescrever
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <MessageSquare className="w-4 h-4" />
-                    Interconsulta
+                  <Button onClick={handleEditPatient} variant="outline" className="gap-2">
+                    <Edit className="w-4 h-4" />
+                    Editar
                   </Button>
                 </div>
               </div>
@@ -172,39 +189,84 @@ export default function PatientProfile() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Informações</CardTitle>
+              <CardTitle className="text-base">Informações Pessoais</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <p className="text-muted-foreground">Setor</p>
-                <p className="font-semibold text-foreground">{patient.sector}</p>
+                <p className="text-muted-foreground">CPF</p>
+                <p className="font-semibold text-foreground">{patient.cpf}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Internação</p>
-                <p className="font-semibold text-foreground">{patient.admissionDate}</p>
+                <p className="text-muted-foreground">Data de Nascimento</p>
+                <p className="font-semibold text-foreground">{formatDate(patient.birth_date)}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Score Braden</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-2xl font-bold text-status-critical">{patient.bradenScore}</span>
-                  <Badge variant="destructive">Risco Alto</Badge>
+                <p className="text-muted-foreground">Endereço</p>
+                <p className="font-semibold text-foreground">
+                  {patient.address}, {patient.city} - {patient.state}
+                </p>
+                <p className="text-muted-foreground">{patient.zip_code}</p>
+              </div>
+              {patient.emergency_contact_name && (
+                <div>
+                  <p className="text-muted-foreground">Contato de Emergência</p>
+                  <p className="font-semibold text-foreground">{patient.emergency_contact_name}</p>
+                  {patient.emergency_contact_phone && (
+                    <p className="text-muted-foreground">{patient.emergency_contact_phone}</p>
+                  )}
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Alertas Ativos</CardTitle>
+              <CardTitle className="text-base">Informações Médicas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="p-3 rounded-lg bg-status-critical/10 border border-status-critical/20">
-                <p className="text-sm font-medium text-status-critical">Lesão Deteriorando</p>
-                <p className="text-xs text-muted-foreground mt-1">Área aumentou 15%</p>
+            <CardContent className="space-y-3 text-sm">
+              {patient.medical_history && (
+                <div>
+                  <p className="text-muted-foreground">Histórico Médico</p>
+                  <p className="font-semibold text-foreground">{patient.medical_history}</p>
+                </div>
+              )}
+              {patient.current_medications && (
+                <div>
+                  <p className="text-muted-foreground">Medicamentos Atuais</p>
+                  <p className="font-semibold text-foreground">{patient.current_medications}</p>
+                </div>
+              )}
+              {patient.allergies && (
+                <div>
+                  <p className="text-muted-foreground">Alergias</p>
+                  <p className="font-semibold text-foreground">{patient.allergies}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Consentimentos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Processamento de Dados</span>
+                <Badge variant={patient.consent_data_processing ? "default" : "secondary"}>
+                  {patient.consent_data_processing ? "Autorizado" : "Não autorizado"}
+                </Badge>
               </div>
-              <div className="p-3 rounded-lg bg-status-warning/10 border border-status-warning/20">
-                <p className="text-sm font-medium text-status-warning">Braden Crítico</p>
-                <p className="text-xs text-muted-foreground mt-1">Score 11 - Risco alto</p>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">WhatsApp</span>
+                <Badge variant={patient.consent_whatsapp ? "default" : "secondary"}>
+                  {patient.consent_whatsapp ? "Autorizado" : "Não autorizado"}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Email</span>
+                <Badge variant={patient.consent_email ? "default" : "secondary"}>
+                  {patient.consent_email ? "Autorizado" : "Não autorizado"}
+                </Badge>
               </div>
             </CardContent>
           </Card>
@@ -213,226 +275,118 @@ export default function PatientProfile() {
         {/* Main Content */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="wounds">Lesões Ativas</TabsTrigger>
+              <TabsTrigger value="evolution">Evolução Clínica</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="history">Histórico</TabsTrigger>
-              <TabsTrigger value="protocols">Protocolos</TabsTrigger>
-              <TabsTrigger value="costs">Custos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground">Lesões Ativas</p>
-                    <p className="text-3xl font-bold text-foreground">{wounds.length}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground">Área Total</p>
-                    <p className="text-3xl font-bold text-foreground">20.7 cm²</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-muted-foreground">Custo Mensal</p>
-                    <p className="text-3xl font-bold text-foreground">R$ {costs.monthly.toFixed(2)}</p>
-                  </CardContent>
-                </Card>
-              </div>
-
               <Card>
                 <CardHeader>
-                  <CardTitle>Lesões em Tratamento</CardTitle>
+                  <CardTitle>Resumo do Paciente</CardTitle>
+                  <CardDescription>
+                    Informações gerais sobre o paciente e seu acompanhamento
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {wounds.map((wound) => (
-                    <div
-                      key={wound.id}
-                      className="flex items-center gap-4 p-4 rounded-lg border hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                        <span className="text-2xl">🩹</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">{wound.type}</h3>
-                          <Badge variant="secondary">Estágio {wound.stage}</Badge>
-                          <StatusBadge status={wound.status} />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {wound.location} • {wound.size} • {wound.area}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2 text-sm">
-                          {wound.evolution >= 0 ? (
-                            <div className="flex items-center gap-1 text-status-stable">
-                              <TrendingUp className="w-4 h-4" />
-                              <span>Melhorando {wound.evolution}%</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-status-critical">
-                              <TrendingDown className="w-4 h-4" />
-                              <span>Piorando {Math.abs(wound.evolution)}%</span>
-                            </div>
-                          )}
-                          <span className="text-muted-foreground">• {wound.lastAssessment}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm">Detalhes</Button>
-                        <Button size="sm" variant="outline">
-                          <Camera className="w-4 h-4" />
-                        </Button>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">Dados Pessoais</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-muted-foreground">Nome:</span> {patient.full_name}</p>
+                        <p><span className="text-muted-foreground">Idade:</span> {calculateAge(patient.birth_date)} anos</p>
+                        <p><span className="text-muted-foreground">Gênero:</span> {patient.gender}</p>
+                        <p><span className="text-muted-foreground">Telefone:</span> {patient.phone}</p>
+                        <p><span className="text-muted-foreground">Email:</span> {patient.email}</p>
                       </div>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="wounds" className="space-y-4">
-              {wounds.map((wound) => (
-                <Card key={wound.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>{wound.type} - {wound.location}</CardTitle>
-                        <CardDescription>Estágio {wound.stage} • Última avaliação: {wound.lastAssessment}</CardDescription>
-                      </div>
-                      <StatusBadge status={wound.status} />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Dimensões</p>
-                          <p className="font-semibold text-foreground">{wound.size}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Área</p>
-                          <p className="font-semibold text-foreground">{wound.area}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-2">Evolução</p>
-                          <div className="flex items-center gap-2">
-                            {wound.evolution >= 0 ? (
-                              <>
-                                <TrendingUp className="w-5 h-5 text-status-stable" />
-                                <Progress value={wound.evolution} className="flex-1 [&>div]:bg-status-stable" />
-                                <span className="text-sm font-semibold text-status-stable">+{wound.evolution}%</span>
-                              </>
-                            ) : (
-                              <>
-                                <TrendingDown className="w-5 h-5 text-status-critical" />
-                                <Progress value={Math.abs(wound.evolution)} className="flex-1 [&>div]:bg-status-critical" />
-                                <span className="text-sm font-semibold text-status-critical">{wound.evolution}%</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-muted rounded-lg flex items-center justify-center min-h-[200px]">
-                        <span className="text-muted-foreground">Foto da lesão</span>
+                    <div>
+                      <h4 className="font-semibold mb-2">Informações Médicas</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-muted-foreground">Especialidade:</span> {patient.specialty}</p>
+                        {patient.medical_history && (
+                          <p><span className="text-muted-foreground">Histórico:</span> {patient.medical_history}</p>
+                        )}
+                        {patient.allergies && (
+                          <p><span className="text-muted-foreground">Alergias:</span> {patient.allergies}</p>
+                        )}
+                        {patient.current_medications && (
+                          <p><span className="text-muted-foreground">Medicamentos:</span> {patient.current_medications}</p>
+                        )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="history">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Linha do Tempo</CardTitle>
-                  <CardDescription>Histórico completo de eventos clínicos</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {timeline.map((item, idx) => (
-                      <div key={idx} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`w-3 h-3 rounded-full ${
-                            item.type === "critical" ? "bg-status-critical" :
-                            item.type === "warning" ? "bg-status-warning" :
-                            "bg-status-stable"
-                          }`} />
-                          {idx < timeline.length - 1 && (
-                            <div className="w-0.5 h-full bg-border mt-2" />
-                          )}
-                        </div>
-                        <div className="flex-1 pb-6">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-foreground">{item.event}</h4>
-                            <span className="text-xs text-muted-foreground">{item.date}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-1">{item.description}</p>
-                          <p className="text-xs text-muted-foreground">Por {item.user}</p>
-                        </div>
-                      </div>
-                    ))}
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-2">Status do Cadastro</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={patient.consent_data_processing ? "default" : "secondary"}>
+                        Processamento de Dados: {patient.consent_data_processing ? "Autorizado" : "Não autorizado"}
+                      </Badge>
+                      <Badge variant={patient.consent_whatsapp ? "default" : "secondary"}>
+                        WhatsApp: {patient.consent_whatsapp ? "Autorizado" : "Não autorizado"}
+                      </Badge>
+                      <Badge variant={patient.consent_email ? "default" : "secondary"}>
+                        Email: {patient.consent_email ? "Autorizado" : "Não autorizado"}
+                      </Badge>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="protocols">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Protocolos Ativos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {protocols.map((protocol, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-4 rounded-lg border"
-                      >
-                        <div>
-                          <h4 className="font-semibold text-foreground">{protocol.name}</h4>
-                          <p className="text-sm text-muted-foreground">{protocol.frequency}</p>
-                        </div>
-                        <Badge variant="secondary">Ativo</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="evolution">
+              <ClinicalEvolution 
+                patientId={patient.id}
+                patientName={patient.full_name}
+                specialty={patient.specialty}
+              />
             </TabsContent>
 
-            <TabsContent value="costs">
+            <TabsContent value="timeline">
+              <PatientTimeline 
+                patientId={patient.id}
+                patientName={patient.full_name}
+              />
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Custos de Tratamento</CardTitle>
-                  <CardDescription>Consumo mensal de materiais</CardDescription>
+                  <CardTitle>Histórico de alterações</CardTitle>
+                  <CardDescription>Eventos registrados para este paciente</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {costs.materials.map((material, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-4 rounded-lg border"
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-foreground">{material.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {material.quantity} unidades × R$ {material.unitCost.toFixed(2)}
-                          </p>
-                        </div>
-                        <p className="text-lg font-bold text-foreground">
-                          R$ {material.total.toFixed(2)}
-                        </p>
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-primary/10 border-2 border-primary">
-                      <p className="font-semibold text-foreground">Total Mensal</p>
-                      <p className="text-2xl font-bold text-primary">
-                        R$ {costs.monthly.toFixed(2)}
-                      </p>
+                  {auditLogs.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">Nenhum evento registrado.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left">
+                            <th className="py-2 pr-4">Ação</th>
+                            <th className="py-2 pr-4">Data</th>
+                            <th className="py-2">Detalhes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {auditLogs.map((log) => (
+                            <tr key={log.id} className="border-t">
+                              <td className="py-2 pr-4">{log.action}</td>
+                              <td className="py-2 pr-4">{formatDate(log.created_at)}</td>
+                              <td className="py-2">
+                                <pre className="bg-muted p-2 rounded text-xs overflow-auto max-h-40">
+                                  {JSON.stringify(log.details || {}, null, 2)}
+                                </pre>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
