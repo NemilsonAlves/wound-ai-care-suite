@@ -25,8 +25,10 @@ import {
   Camera,
   Bell
 } from 'lucide-react';
-import { usePatientAuth } from '../contexts/PatientAuthContext';
+import { usePatientAuth } from '@/contexts/PatientAuthContextBase';
 import { formatDate, formatPhone } from '../lib/utils';
+import { supabase } from '@/lib/supabase';
+import { EvolutionService } from '@/services/evolutionService';
 
 interface Appointment {
   id: string;
@@ -34,7 +36,7 @@ interface Appointment {
   time: string;
   doctor: string;
   specialty: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
   type: string;
 }
 
@@ -111,193 +113,203 @@ const PatientPortal = () => {
   const [evolutions, setEvolutions] = useState<WoundEvolution[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<MedicalReport | null>(null);
-  const [selectedPhotos, setSelectedPhotos] = useState<any[] | null>(null);
+  const [selectedPhotos, setSelectedPhotos] = useState<WoundEvolution['photos'] | null>(null);
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
+  const [aptStatusFilter, setAptStatusFilter] = useState<'all' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled'>('all');
 
   useEffect(() => {
-    // Simular carregamento de dados do paciente
     const loadPatientData = async () => {
-      setLoading(true);
-      
-      // Dados simulados
-      setAppointments([
-        {
-          id: '1',
-          date: '2024-01-15',
-          time: '14:30',
-          doctor: 'Dr. João Silva',
-          specialty: 'Dermatologia',
-          status: 'scheduled',
-          type: 'Consulta de Rotina'
-        },
-        {
-          id: '2',
-          date: '2024-01-08',
-          time: '10:00',
-          doctor: 'Enfª Maria Santos',
-          specialty: 'Enfermagem',
-          status: 'completed',
-          type: 'Curativo'
+      try {
+        setLoading(true);
+        if (!patient?.id) {
+          setAppointments([]);
+          setReports([]);
+          setEvolutions([]);
+          return;
         }
-      ]);
 
-      setReports([
-        {
-          id: '1',
-          title: 'Relatório de Consulta - Dermatologia',
-          date: '2024-01-08',
-          doctor: 'Dr. João Silva',
-          specialty: 'Dermatologia',
-          type: 'consultation',
-          status: 'available',
-          summary: 'Avaliação de ferida em processo de cicatrização. Evolução positiva observada.',
-          patient: {
-            name: profile?.full_name || 'Paciente Demo',
-            age: 45,
-            gender: 'Masculino',
-            id: 'PAC001'
-          },
-          content: {
-            complaint: 'Paciente relata ferida na perna direita há 3 semanas, com dor moderada e dificuldade de cicatrização.',
-            examination: 'Ferida de aproximadamente 3x2 cm na região anterior da perna direita, com bordas regulares, presença de tecido de granulação e ausência de sinais de infecção.',
-            diagnosis: 'Úlcera venosa crônica em processo de cicatrização - Estágio II',
-            treatment: 'Limpeza diária com soro fisiológico, aplicação de hidrogel e curativo com filme transparente. Repouso com elevação do membro.',
-            observations: 'Paciente orientado sobre cuidados domiciliares e sinais de alerta. Retorno em 7 dias para reavaliação.',
-            medications: [
-              {
-                name: 'Diosmin + Hesperidina 450mg + 50mg',
-                dosage: '1 comprimido',
-                frequency: '2x ao dia',
-                duration: '30 dias'
-              }
-            ]
+        // Consultas do paciente
+        const { data: apts, error: aptErr } = await supabase
+          .from('appointments')          .select('id, patient_id, professional_id, specialty, date_time, status, notes, professional:profiles!appointments_professional_id_fkey(id, full_name)')
+          .eq('patient_id', patient.id)
+          .order('date_time', { ascending: true });
+        if (aptErr) throw aptErr;
+
+        const profIds = Array.from(new Set((apts || []).map(a => a.professional_id))).filter(Boolean);
+        const profRes = profIds.length
+          ? await supabase.from('profiles').select('id, full_name').in('id', profIds)
+          : { data: [] as unknown[] };
+        const profMap: Record<string, string> = Object.fromEntries((profRes.data || []).map(p => [p.id, p.full_name]));
+
+        const mappedAppointments: Appointment[] = (apts || []).map(a => {
+          const dt = new Date(a.date_time);
+          const statusMap = (s: string): 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' => {            if (s === 'confirmed') return 'confirmed';            if (s === 'in_progress') return 'in_progress';            if (s === 'completed') return 'completed';            if (s === 'cancelled') return 'cancelled';            return 'scheduled';          };
+          const specLabel = typeof a.specialty === 'string'
+            ? (a.specialty.charAt(0).toUpperCase() + a.specialty.slice(1))
+            : 'Especialidade';
+          return {
+            id: a.id,
+            date: dt.toISOString().slice(0,10),
+            time: dt.toTimeString().slice(0,5),
+            doctor: (a as { professional?: { full_name?: string } }).professional?.full_name || profMap[a.professional_id] || 'Profissional',
+            specialty: specLabel,
+            status: statusMap(a.status),
+            type: a.notes || 'Consulta'
+          };
+        });
+
+        // Evoluções clínicas do paciente
+        const { data: evos, error: evoErr } = await supabase
+          .from('clinical_evolutions')
+          .select('id, patient_id, evolution_data, ai_analysis, created_at')
+          .eq('patient_id', patient.id)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        if (evoErr) throw evoErr;
+
+        const mappedEvolutions: WoundEvolution[] = (evos || []).map(e => {
+          type EvolutionData = {
+            dimensions?: { length?: number; width?: number };
+            size?: string;
+            wound_location?: string;
+            notes?: string;
+            wound_stage?: string;
+            photos?: string[];
+          };
+          const ed: EvolutionData = (e as { evolution_data?: EvolutionData }).evolution_data || {};
+          const dims = ed?.dimensions;
+          const size = dims ? `${dims.length ?? '-'} x ${dims.width ?? '-'} cm` : (ed.size || '-');
+          let progress = 0;
+          try {
+            const ai = typeof e.ai_analysis === 'string' ? JSON.parse(e.ai_analysis) : e.ai_analysis;
+            progress = ai?.analysis_results?.healing_progress?.percentage ?? 0;
+          } catch (parseErr) {
+            // JSON inválido em ai_analysis; manter progresso em 0
+            progress = 0;
           }
-        },
-        {
-          id: '2',
-          title: 'Exame Laboratorial',
-          date: '2024-01-05',
-          doctor: 'Lab. Central',
-          specialty: 'Laboratório',
-          type: 'exam',
-          status: 'available',
-          summary: 'Hemograma completo e marcadores inflamatórios dentro da normalidade.',
-          patient: {
-            name: profile?.full_name || 'Paciente Demo',
-            age: 45,
-            gender: 'Masculino',
-            id: 'PAC001'
-          },
-          content: {
-            complaint: 'Exames de rotina para acompanhamento do tratamento',
-            examination: 'Coleta de sangue venoso em jejum',
-            diagnosis: 'Exames laboratoriais dentro dos parâmetros normais',
-            treatment: 'Manter tratamento atual',
-            observations: 'Resultados satisfatórios, sem alterações significativas',
-            exams: [
-              {
-                name: 'Hemoglobina',
-                result: '14.2 g/dL',
-                reference: '12.0 - 16.0 g/dL',
-                status: 'normal'
-              },
-              {
-                name: 'Leucócitos',
-                result: '7.800 /mm³',
-                reference: '4.000 - 11.000 /mm³',
-                status: 'normal'
-              },
-              {
-                name: 'PCR',
-                result: '2.1 mg/L',
-                reference: '< 3.0 mg/L',
-                status: 'normal'
-              }
-            ]
+          const stageLabel = ed.wound_stage ? EvolutionService.getWoundStageLabel(ed.wound_stage) : '-';
+          return {
+            id: e.id,
+            date: new Date(e.created_at).toISOString().slice(0,10),
+            location: ed.wound_location || 'Local não especificado',
+            stage: stageLabel,
+            size,
+            healing_progress: progress,
+            notes: ed.notes || '',
+            photos: ((ed.photos as string[]) || []).map((url: string, idx: number) => ({
+              id: `${e.id}-photo-${idx}`,
+              url,
+              date: new Date(e.created_at).toISOString().slice(0,10),
+              location: ed.wound_location || '',
+              stage: stageLabel,
+              size,
+              notes: 'Foto registrada na evolução clínica'
+            }))
+          };
+        });
+
+        // Laudos a partir das análises de IA (wound_analyses)
+        const evoIds = (evos || []).map(e => e.id);
+        let mappedReports: MedicalReport[] = [];
+        if (evoIds.length) {
+          const { data: analyses, error: anErr } = await supabase
+            .from('wound_analyses')
+            .select('*')
+            .in('evolution_id', evoIds)
+            .order('created_at', { ascending: false });
+          if (anErr) throw anErr;
+
+          // Considerar apenas a análise mais recente por evolução
+          type AnalysisRow = {
+            id: string;
+            evolution_id: string;
+            created_at: string;
+            analysis_results?: {
+              wound_type?: string;
+              wound_stage?: string;
+              healing_progress?: { percentage?: number; status?: string };
+              exudate?: { type?: string; amount?: string };
+              dimensions?: { length?: number; width?: number };
+              infection_signs?: { present?: boolean; indicators?: string[] };
+              edges?: { condition?: string; attachment?: string };
+              recommendations?: string[];
+              confidence_score?: number;
+            };
+            image_url?: string;
+          };
+          const latestByEvolution: Record<string, AnalysisRow> = {};
+          for (const an of analyses || []) {
+            if (!latestByEvolution[an.evolution_id]) {
+              latestByEvolution[an.evolution_id] = an;
+            }
           }
-        }
-      ]);
 
-      setEvolutions([
-        {
-          id: '1',
-          date: '2024-01-08',
-          location: 'Perna direita',
-          stage: 'Estágio II',
-          size: '3.2 x 2.1 cm',
-          healing_progress: 75,
-          notes: 'Boa evolução, tecido de granulação presente',
-          photos: [
-            {
-              id: 'photo1',
-              url: '/api/placeholder/600/400',
-              date: '2024-01-08',
-              location: 'Perna direita',
-              stage: 'Estágio II',
-              size: '3.2 x 2.1 cm',
-              notes: 'Foto após limpeza e aplicação do curativo',
-              measurements: {
-                length: 3.2,
-                width: 2.1,
-                depth: 0.8,
-                area: 6.72
-              }
-            },
-            {
-              id: 'photo2',
-              url: '/api/placeholder/600/400',
-              date: '2024-01-08',
-              location: 'Perna direita',
-              stage: 'Estágio II',
-              size: '3.2 x 2.1 cm',
-              notes: 'Vista lateral da ferida',
-              measurements: {
-                length: 3.2,
-                width: 2.1,
-                area: 6.72
-              }
-            }
-          ]
-        },
-        {
-          id: '2',
-          date: '2024-01-01',
-          location: 'Perna direita',
-          stage: 'Estágio II',
-          size: '4.1 x 2.8 cm',
-          healing_progress: 45,
-          notes: 'Início do tratamento, limpeza da ferida realizada',
-          photos: [
-            {
-              id: 'photo3',
-              url: '/api/placeholder/600/400',
-              date: '2024-01-01',
-              location: 'Perna direita',
-              stage: 'Estágio II',
-              size: '4.1 x 2.8 cm',
-              notes: 'Estado inicial da ferida',
-              measurements: {
-                length: 4.1,
-                width: 2.8,
-                depth: 1.2,
-                area: 11.48
-              }
-            }
-          ]
-        }
-      ]);
+          mappedReports = Object.values(latestByEvolution).map((an: AnalysisRow) => {
+            const ar = an.analysis_results;
+            const woundType = ar?.wound_type || 'Ferida';
+            const woundStage = ar?.wound_stage ? EvolutionService.getWoundStageLabel(ar.wound_stage) : '';
+            const progressPct = ar?.healing_progress?.percentage ?? 0;
+            const progressStatus = ar?.healing_progress?.status || 'stable';
+            const exudateInfo = ar?.exudate ? `${ar.exudate.type} (${ar.exudate.amount})` : '';
+            const dimensions = ar?.dimensions ? `${ar.dimensions.length} x ${ar.dimensions.width} cm` : '';
+            const infection = ar?.infection_signs?.present ? (ar.infection_signs.indicators || []).join(', ') : 'Ausente';
+            const edges = ar?.edges ? `${ar.edges.condition}, ${ar.edges.attachment}` : '';
+            const recommendations = (ar?.recommendations || []).join(' | ');
 
-      setLoading(false);
+            const evo = (evos || []).find(e => e.id === an.evolution_id);
+            const location = (evo as { evolution_data?: { wound_location?: string } })?.evolution_data?.wound_location || '';
+
+            return {
+              id: an.id,
+              title: `Laudo de Evolução  ${location}`,
+              date: new Date(an.created_at).toISOString().slice(0,10),
+              doctor: 'Equipe de Enfermagem',
+              specialty: 'Curativos',
+              type: 'exam',
+              status: 'available',
+              summary: `Tipo: ${woundType}  Estágio: ${woundStage}  Progresso: ${Math.round(progressPct)}% (${progressStatus})`,
+              patient: {
+                name: patient?.full_name || 'Paciente',
+                age: 0,
+                gender: 'N/A',
+                id: patient?.id || ''
+              },
+              content: {
+                complaint: (evo as { evolution_data?: { notes?: string } })?.evolution_data?.notes || '',
+                examination: `Dimensões: ${dimensions}. Exsudato: ${exudateInfo}. Margens: ${edges}.`,
+                diagnosis: `Sinais de infecção: ${infection}. Estágio: ${woundStage}.`,
+                treatment: recommendations || 'Aguardando recomendações.',
+                observations: `Confiança IA: ${ar?.confidence_score ?? 0}`
+              },
+              attachments: an.image_url ? [
+                { name: 'Imagem da ferida', type: 'image/jpeg', url: an.image_url }
+              ] : []
+            } as MedicalReport;
+          });
+        }
+
+        setAppointments(mappedAppointments);
+        setReports(mappedReports);
+        setEvolutions(mappedEvolutions);
+      } catch (err) {
+        console.error('Erro ao carregar dados do paciente (Supabase):', err);
+        setAppointments([]);
+        setReports([]);
+        setEvolutions([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadPatientData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patient?.id]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';      case 'confirmed': return 'bg-indigo-100 text-indigo-800';      case 'in_progress': return 'bg-purple-100 text-purple-800';
       case 'available': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -308,7 +320,7 @@ const PatientPortal = () => {
     switch (status) {
       case 'scheduled': return 'Agendada';
       case 'completed': return 'Concluída';
-      case 'cancelled': return 'Cancelada';
+      case 'cancelled': return 'Cancelada';      case 'confirmed': return 'Confirmada';      case 'in_progress': return 'Em andamento';
       case 'available': return 'Disponível';
       case 'pending': return 'Pendente';
       default: return status;
@@ -383,7 +395,7 @@ const PatientPortal = () => {
                     <Calendar className="h-8 w-8 text-blue-600" />
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600">Próxima Consulta</p>
-                      <p className="text-2xl font-bold text-gray-900">15/01</p>
+                      <p className="text-2xl font-bold text-gray-900">{appointments[0] ? formatDate(appointments[0].date) : '--'}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -419,7 +431,7 @@ const PatientPortal = () => {
                     <TrendingUp className="h-8 w-8 text-orange-600" />
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600">Progresso</p>
-                      <p className="text-2xl font-bold text-gray-900">75%</p>
+                      <p className="text-2xl font-bold text-gray-900">{Math.round((evolutions[0]?.healing_progress ?? 0))}%</p>
                     </div>
                   </div>
                 </CardContent>
@@ -435,7 +447,18 @@ const PatientPortal = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {appointments.filter(apt => apt.status === 'scheduled').map((appointment) => (
+                    {appointments
+                      .filter(apt => apt.status === 'scheduled' || apt.status === 'confirmed')
+                      .filter(apt => {
+                        const dt = new Date(`${apt.date}T${apt.time}`);
+                        return dt >= new Date();
+                      })
+                      .sort((a, b) => {
+                        const da = new Date(`${a.date}T${a.time}`);
+                        const db = new Date(`${b.date}T${b.time}`);
+                        return da.getTime() - db.getTime();
+                      })
+                      .map((appointment) => (
                       <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <Calendar className="h-5 w-5 text-blue-600" />
@@ -474,7 +497,7 @@ const PatientPortal = () => {
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span>Progresso de Cicatrização</span>
-                            <span>{evolution.healing_progress}%</span>
+                            <span>{Math.round(evolution.healing_progress)}%</span>
                           </div>
                           <Progress value={evolution.healing_progress} className="h-2" />
                           <p className="text-sm text-gray-600">{evolution.notes}</p>
@@ -495,8 +518,30 @@ const PatientPortal = () => {
                 <CardDescription>Histórico e agendamentos de consultas</CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-sm text-gray-600">Filtrar por status</div>
+                  <select
+                    className="border rounded-md px-2 py-1 text-sm"
+                    value={aptStatusFilter}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAptStatusFilter(e.target.value as 'all' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')}
+                  >
+                    <option value="all">Todos</option>
+                    <option value="scheduled">Agendada</option>
+                    <option value="confirmed">Confirmada</option>
+                    <option value="in_progress">Em andamento</option>
+                    <option value="completed">Concluída</option>
+                    <option value="cancelled">Cancelada</option>
+                  </select>
+                </div>
                 <div className="space-y-4">
-                  {appointments.map((appointment) => (
+                  {appointments
+                    .filter(apt => aptStatusFilter === 'all' ? true : apt.status === aptStatusFilter)
+                    .sort((a, b) => {
+                      const da = new Date(`${a.date}T${a.time}`);
+                      const db = new Date(`${b.date}T${b.time}`);
+                      return da.getTime() - db.getTime();
+                    })
+                    .map((appointment) => (
                     <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
                         <Calendar className="h-8 w-8 text-blue-600" />
@@ -608,7 +653,7 @@ const PatientPortal = () => {
                           <p className="text-sm font-medium text-gray-600">Progresso</p>
                           <div className="flex items-center space-x-2">
                             <Progress value={evolution.healing_progress} className="flex-1 h-2" />
-                            <span className="text-sm font-medium">{evolution.healing_progress}%</span>
+                            <span className="text-sm font-medium">{Math.round(evolution.healing_progress)}%</span>
                           </div>
                         </div>
                       </div>
@@ -666,3 +711,6 @@ const PatientPortal = () => {
 };
 
 export default PatientPortal;
+
+
+

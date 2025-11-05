@@ -105,7 +105,7 @@ class PaymentService {
           auto_return: preferenceData.auto_return || 'approved',
           payment_methods: preferenceData.payment_methods,
           notification_url: preferenceData.notification_url,
-          statement_descriptor: preferenceData.statement_descriptor || 'WoundCare',
+    statement_descriptor: preferenceData.statement_descriptor || 'Central de Pele',
           external_reference: preferenceData.external_reference
         }
       });
@@ -164,14 +164,14 @@ class PaymentService {
     const preferenceData: PaymentPreference = {
       items: [{
         id: `consultation-${Date.now()}`,
-        title: 'Consulta Médica - WoundCare',
+    title: 'Consulta Médica - Central de Pele',
         description: consultationData.description,
         quantity: 1,
         unit_price: consultationData.amount,
         currency_id: 'BRL'
       }],
       external_reference: `consultation-${consultationData.patientId}-${consultationData.doctorId}`,
-      statement_descriptor: 'WoundCare Consulta'
+    statement_descriptor: 'Central de Pele Consulta'
     };
 
     return await this.createPreference(preferenceData);
@@ -187,14 +187,14 @@ class PaymentService {
     const preferenceData: PaymentPreference = {
       items: [{
         id: `subscription-${subscriptionData.planType}-${Date.now()}`,
-        title: `Plano ${subscriptionData.planType.toUpperCase()} - WoundCare`,
+    title: `Plano ${subscriptionData.planType.toUpperCase()} - Central de Pele`,
         description: subscriptionData.description,
         quantity: 1,
         unit_price: subscriptionData.amount,
         currency_id: 'BRL'
       }],
       external_reference: `subscription-${subscriptionData.patientId}-${subscriptionData.planType}`,
-      statement_descriptor: 'WoundCare Plano'
+    statement_descriptor: 'Central de Pele Plano'
     };
 
     return await this.createPreference(preferenceData);

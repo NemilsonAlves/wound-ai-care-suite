@@ -80,7 +80,7 @@ interface DermatologiaFieldsProps {
 }
 
 const DermatologiaFields: React.FC<DermatologiaFieldsProps> = ({ data, onChange, readOnly = false }) => {
-  const handleChange = (field: keyof DermatologiaData, value: any) => {
+  const handleChange = (field: keyof DermatologiaData, value: DermatologiaData[keyof DermatologiaData]) => {
     onChange({ ...data, [field]: value });
   };
 

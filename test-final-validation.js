@@ -214,7 +214,7 @@ async function runValidation() {
     console.log('✅ Sistema de pacientes operacional');
     console.log('✅ Interface web pronta para uso');
     console.log('\n📋 Próximos passos:');
-    console.log('1. Testar interface em http://localhost:8081');
+    console.log('1. Testar interface em http://localhost:8080');
     console.log('2. Criar novos pacientes via formulário');
     console.log('3. Validar todas as funcionalidades');
   } else {

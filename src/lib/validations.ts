@@ -256,7 +256,7 @@ export const errorMessages = {
 };
 
 // Função para sanitizar dados de entrada
-export function sanitizePatientData(data: any): any {
+export function sanitizePatientData(data: Partial<CreatePatientData>): Partial<CreatePatientData> {
   // Normaliza especialidade para a forma capitalizada canônica
   const SPECIALTY_MAP: Record<string, string> = SPECIALTIES.reduce((acc, item) => {
     acc[item.toLowerCase()] = item;
@@ -270,7 +270,7 @@ export function sanitizePatientData(data: any): any {
     return SPECIALTY_MAP[key] || raw;
   })();
 
-  return {
+  const result: Partial<CreatePatientData> = {
     ...data,
     full_name: data.full_name?.trim(),
     cpf: data.cpf?.replace(/\D/g, ''),
@@ -287,17 +287,19 @@ export function sanitizePatientData(data: any): any {
     current_medications: data.current_medications?.trim(),
     specialty: normalizedSpecialty
   };
+  return result;
 }
 
 // Função para formatar dados para exibição
-export function formatPatientData(data: any): any {
-  return {
+export function formatPatientData(data: Partial<CreatePatientData>): Partial<CreatePatientData> {
+  const result: Partial<CreatePatientData> = {
     ...data,
     cpf: data.cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'),
     phone: data.phone?.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3'),
     zip_code: data.zip_code?.replace(/(\d{5})(\d{3})/, '$1-$2'),
     emergency_contact_phone: data.emergency_contact_phone?.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
   };
+  return result;
 }
 
 // Helpers de formatação expostos para uso em páginas e formulários

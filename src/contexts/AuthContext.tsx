@@ -1,31 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session } from '@supabase/supabase-js'
+import React, { useEffect, useState } from 'react'
+import { User, Session, AuthError, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { Database } from '@/lib/supabase'
 import { MockAuthService, MockUser } from '@/services/mockAuthService'
-
-type Profile = Database['public']['Tables']['profiles']['Row']
-
-interface AuthContextType {
-  user: User | null
-  profile: Profile | null
-  session: Session | null
-  loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, fullName: string, role: 'professional' | 'patient') => Promise<{ error: any }>
-  signOut: () => Promise<void>
-  updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+import { AuthContext, useAuth, Profile, AuthContextType } from './AuthContextBase'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -36,56 +13,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const enableDemoAuth = (import.meta.env.VITE_ENABLE_DEMO_AUTH ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true'
 
   useEffect(() => {
-    // Check for existing mock session in localStorage
-    const mockSession = localStorage.getItem('mockSession')
-    if (mockSession) {
-      const mockUser = JSON.parse(mockSession) as MockUser
-      setUser({
-        id: mockUser.id,
-        email: mockUser.email,
-      } as User)
-      setProfile({
-        id: mockUser.id,
-        email: mockUser.email,
-        full_name: mockUser.full_name,
-        role: mockUser.role,
-        specialty: mockUser.specialty,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      setSession({} as Session)
+    if (enableDemoAuth) {
+      const mockSession = localStorage.getItem('mockSession')
+      if (mockSession) {
+        const mockUser = JSON.parse(mockSession) as MockUser
+        setUser({ id: mockUser.id, email: mockUser.email } as User)
+        setProfile({
+          id: mockUser.id,
+          email: mockUser.email,
+          full_name: mockUser.full_name,
+          role: mockUser.role,
+          specialty: mockUser.specialty,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        setSession({} as Session)
+      }
+      setLoading(false)
+      return
     }
+
+    // Supabase auth state listener for non-demo mode
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, currentSession: Session | null) => {
+      setSession(currentSession)
+      setUser(currentSession?.user ?? null)
+      setLoading(false)
+    })
     setLoading(false)
-  }, [])
+    return () => { authListener?.subscription?.unsubscribe() }
+  }, [enableDemoAuth])
 
   const signIn = async (email: string, password: string) => {
     setLoading(true)
     
-    // Try mock authentication first for development
-    const mockUser = MockAuthService.authenticate(email, password)
-    if (mockUser) {
-      localStorage.setItem('mockSession', JSON.stringify(mockUser))
-      setUser({
-        id: mockUser.id,
-        email: mockUser.email,
-      } as User)
-      setProfile({
-        id: mockUser.id,
-        email: mockUser.email,
-        full_name: mockUser.full_name,
-        role: mockUser.role,
-        specialty: mockUser.specialty,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      setSession({} as Session)
-      setLoading(false)
-      return { error: null }
+    // Demo mode: use mock auth
+    if (enableDemoAuth) {
+      const mockUser = MockAuthService.authenticate(email, password)
+      if (mockUser) {
+        localStorage.setItem('mockSession', JSON.stringify(mockUser))
+        setUser({ id: mockUser.id, email: mockUser.email } as User)
+        setProfile({
+          id: mockUser.id,
+          email: mockUser.email,
+          full_name: mockUser.full_name,
+          role: mockUser.role,
+          specialty: mockUser.specialty,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        setSession({} as Session)
+        setLoading(false)
+        return { error: null }
+      }
     }
 
-    // Fallback to Supabase authentication
+    // Non-demo: Supabase authentication only
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -93,33 +78,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
       setLoading(false)
       return { error }
-    } catch (err) {
+    } catch (err: unknown) {
       setLoading(false)
-      return { error: new Error('Erro de conexão. Usando modo de demonstração.') }
+      const error = err instanceof Error ? err : new Error('Unknown error')
+      return { error }
     }
   }
 
   const signUp = async (email: string, password: string, fullName: string, role: 'professional' | 'patient') => {
     setLoading(true)
-    
-    // Mock signup for development
-    const newMockUser: MockUser = {
-      id: Date.now().toString(),
-      email,
-      full_name: fullName,
-      role,
+
+    if (enableDemoAuth) {
+      const newMockUser: MockUser = {
+        id: Date.now().toString(),
+        email,
+        full_name: fullName,
+        role,
+      }
+      console.log('Mock user created:', newMockUser)
+      setLoading(false)
+      return { error: null }
     }
-    
-    // In a real app, this would be saved to a database
-    console.log('Mock user created:', newMockUser)
-    
-    setLoading(false)
-    return { error: null }
+
+    // Non-demo: Supabase sign up
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, role },
+        },
+      })
+      setLoading(false)
+      return { error }
+    } catch (err: unknown) {
+      setLoading(false)
+      const error = err instanceof Error ? err : new Error('Unknown error')
+      return { error }
+    }
   }
 
   const signOut = async () => {
     setLoading(true)
-    localStorage.removeItem('mockSession')
+    if (enableDemoAuth) {
+      localStorage.removeItem('mockSession')
+    } else {
+      await supabase.auth.signOut()
+    }
     setUser(null)
     setProfile(null)
     setSession(null)

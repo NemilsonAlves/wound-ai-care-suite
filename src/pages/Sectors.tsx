@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Plus, Search, Edit, Trash2, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,8 @@ const mockSectors: Sector[] = [
 ];
 
 export default function Sectors() {
-  const [sectors, setSectors] = useState<Sector[]>(mockSectors);
+  const enableMockData = (import.meta.env.VITE_ENABLE_MOCK_DATA ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true';
+  const [sectors, setSectors] = useState<Sector[]>(enableMockData ? mockSectors : []);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSector, setEditingSector] = useState<Sector | null>(null);
@@ -218,6 +220,14 @@ export default function Sectors() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {!enableMockData && (
+        <Alert>
+          <AlertTitle>Dados de demonstração desativados</AlertTitle>
+          <AlertDescription>
+            Ative `VITE_ENABLE_MOCK_DATA` para visualizar setores de exemplo.
+          </AlertDescription>
+        </Alert>
+      )}
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

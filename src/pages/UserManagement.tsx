@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useClinicConfig } from '@/contexts/ClinicConfigContext';
+import { useClinicConfig } from '@/contexts/ClinicConfigContextBase';
 import { PermissionGuard } from '@/components/common/PermissionGuard';
 import { Users, UserPlus, Shield, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
@@ -59,7 +60,8 @@ const mockUsers: User[] = [
 
 const UserManagement: React.FC = () => {
   const { config } = useClinicConfig();
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const enableMockData = (import.meta.env.VITE_ENABLE_MOCK_DATA ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true';
+  const [users, setUsers] = useState<User[]>(enableMockData ? mockUsers : []);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
@@ -133,6 +135,14 @@ const UserManagement: React.FC = () => {
   return (
     <PermissionGuard module="team" action="read">
       <div className="container mx-auto p-6 space-y-6">
+        {!enableMockData && (
+          <Alert>
+            <AlertTitle>Dados de demonstração desativados</AlertTitle>
+            <AlertDescription>
+              Ative `VITE_ENABLE_MOCK_DATA` para visualizar usuários de exemplo.
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Users className="h-6 w-6" />

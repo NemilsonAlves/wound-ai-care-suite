@@ -1,6 +1,6 @@
-# WoundCare AI Suite
+# Central de Pele AI
 
-Sistema de gerenciamento de feridas com inteligência artificial para ambientes hospitalares.
+Sistema de gerenciamento de lesões de pele com inteligência artificial.
 
 ## Project info
 

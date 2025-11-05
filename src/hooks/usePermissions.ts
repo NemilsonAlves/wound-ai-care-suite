@@ -1,5 +1,5 @@
-import { useAuth } from '@/contexts/AuthContext';
-import { useClinicConfig } from '@/contexts/ClinicConfigContext';
+import { useAuth } from '@/contexts/AuthContextBase';
+import { useClinicConfig } from '@/contexts/ClinicConfigContextBase';
 import { useMemo } from 'react';
 import { 
   SUPERADMIN_ONLY_MODULES, 
@@ -117,7 +117,7 @@ export const usePermissions = (): UserPermissions => {
 
   const hasCriticalPermission = (permission: string): boolean => {
     if (userRole !== 'superadmin') return false;
-    return Object.values(CRITICAL_PERMISSIONS).includes(permission as any);
+  return (Object.values(CRITICAL_PERMISSIONS) as string[]).includes(permission as string);
   };
 
   return {

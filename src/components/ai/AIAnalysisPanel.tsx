@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -21,6 +21,7 @@ import {
   Upload
 } from 'lucide-react';
 import { AIAnalysisService, WoundAnalysis } from '../../services/aiAnalysisService';
+import { aiProviderService } from '../../services/aiProviderService';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 interface AIAnalysisPanelProps {
@@ -38,11 +39,7 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState('current');
 
-  useEffect(() => {
-    loadAnalyses();
-  }, [evolutionId]);
-
-  const loadAnalyses = async () => {
+  const loadAnalyses = useCallback(async () => {
     try {
       setLoading(true);
       const data = await AIAnalysisService.getAnalysesByEvolution(evolutionId);
@@ -52,7 +49,13 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [evolutionId]);
+
+  useEffect(() => {
+    loadAnalyses();
+  }, [loadAnalyses]);
+
+  
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -305,6 +308,12 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
           <CardDescription>
             Faça upload de uma imagem da ferida para análise automática
           </CardDescription>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-gray-500">Provedor ativo:</span>
+            <Badge variant="secondary" className="capitalize">
+              {aiProviderService.getConfig().provider}
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

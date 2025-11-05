@@ -78,7 +78,7 @@ export function StatusBadge({ status, label, className }: StatusBadgeProps) {
 
   return (
     <Badge
-      variant={config.variant as any}
+      variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'}
       className={cn(config.className, className)}
     >
       {displayLabel}

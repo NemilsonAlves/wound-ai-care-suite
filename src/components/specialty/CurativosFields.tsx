@@ -65,7 +65,7 @@ interface CurativosFieldsProps {
 }
 
 const CurativosFields: React.FC<CurativosFieldsProps> = ({ data, onChange, readOnly = false }) => {
-  const handleChange = (field: keyof CurativosData, value: any) => {
+  const handleChange = (field: keyof CurativosData, value: CurativosData[keyof CurativosData]) => {
     onChange({ ...data, [field]: value });
   };
 

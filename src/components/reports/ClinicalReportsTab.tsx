@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,31 +51,31 @@ export function ClinicalReportsTab() {
   const [proceduresReport, setProceduresReport] = useState<ProcedureReport[]>([]);
   const [financialReport, setFinancialReport] = useState<FinancialReport | null>(null);
 
-  useEffect(() => {
-    loadReportData();
-  }, [activeReport, filters]);
-
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     try {
       setLoading(true);
       
       switch (activeReport) {
-        case 'patients':
+        case 'patients': {
           const patients = await ReportsService.getPatientsReport(filters);
           setPatientsReport(patients);
           break;
-        case 'consultations':
+        }
+        case 'consultations': {
           const consultations = await ReportsService.getConsultationsReport(filters);
           setConsultationsReport(consultations);
           break;
-        case 'procedures':
+        }
+        case 'procedures': {
           const procedures = await ReportsService.getProceduresReport(filters);
           setProceduresReport(procedures);
           break;
-        case 'financial':
+        }
+        case 'financial': {
           const financial = await ReportsService.getFinancialReport(filters);
           setFinancialReport(financial);
           break;
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar relatório:', error);
@@ -83,7 +83,11 @@ export function ClinicalReportsTab() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeReport, filters]);
+
+  useEffect(() => {
+    loadReportData();
+  }, [loadReportData]);
 
   const handleFilterChange = (key: keyof ReportFilter, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -108,8 +112,10 @@ export function ClinicalReportsTab() {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
+  type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { variant: any; label: string }> = {
+    const statusMap: Record<string, { variant: BadgeVariant; label: string }> = {
       'scheduled': { variant: 'secondary', label: 'Agendado' },
       'completed': { variant: 'default', label: 'Concluído' },
       'cancelled': { variant: 'destructive', label: 'Cancelado' },

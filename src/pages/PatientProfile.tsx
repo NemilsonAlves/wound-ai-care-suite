@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Edit, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,12 +23,18 @@ export default function PatientProfile() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  type AuditLogEntry = {
+  id: string;
+  action: string;
+  details?: unknown;
+  created_at: string;
+};
+const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
 
   useEffect(() => {
     const loadPatient = async () => {
       if (!id) {
-        setError("ID do paciente não fornecido");
+        setError("ID do paciente nÃ£o fornecido");
         setLoading(false);
         return;
       }
@@ -42,7 +48,7 @@ export default function PatientProfile() {
         setError("Erro ao carregar dados do paciente");
         toast({
           title: "Erro",
-          description: "Não foi possível carregar os dados do paciente",
+          description: "NÃ£o foi possÃ­vel carregar os dados do paciente",
           variant: "destructive",
         });
       } finally {
@@ -63,7 +69,7 @@ export default function PatientProfile() {
           .eq('patient_id', id)
           .order('created_at', { ascending: false });
         if (!error) {
-          setAuditLogs(data || []);
+          setAuditLogs((data || []) as AuditLogEntry[]);
         }
       } catch (e) {
         console.warn('Erro ao carregar audit logs:', e);
@@ -114,7 +120,7 @@ export default function PatientProfile() {
         <AlertCircle className="w-12 h-12 text-destructive" />
         <div className="text-center">
           <h2 className="text-xl font-semibold">Erro ao carregar paciente</h2>
-          <p className="text-muted-foreground">{error || "Paciente não encontrado"}</p>
+          <p className="text-muted-foreground">{error || "Paciente nÃ£o encontrado"}</p>
         </div>
         <Button onClick={() => navigate("/pacientes")} variant="outline">
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -142,13 +148,13 @@ export default function PatientProfile() {
                   <h1 className="text-3xl font-bold text-foreground">{patient.full_name}</h1>
                   <div className="flex items-center gap-4 mt-2 text-muted-foreground">
                     <span>{calculateAge(patient.birth_date)} anos</span>
-                    <span>•</span>
+                    <span>â€¢</span>
                     <span className="capitalize">{patient.gender}</span>
-                    <span>•</span>
+                    <span>â€¢</span>
                     <span>{patient.phone}</span>
                     {patient.email && (
                       <>
-                        <span>•</span>
+                        <span>â€¢</span>
                         <span>{patient.email}</span>
                       </>
                     )}
@@ -166,7 +172,7 @@ export default function PatientProfile() {
                     )}
                     {patient.medical_history && (
                       <Badge variant="secondary">
-                        Histórico Médico
+                        HistÃ³rico MÃ©dico
                       </Badge>
                     )}
                   </div>
@@ -189,7 +195,7 @@ export default function PatientProfile() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Informações Pessoais</CardTitle>
+              <CardTitle className="text-base">InformaÃ§Ãµes Pessoais</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
@@ -201,7 +207,7 @@ export default function PatientProfile() {
                 <p className="font-semibold text-foreground">{formatDate(patient.birth_date)}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Endereço</p>
+                <p className="text-muted-foreground">EndereÃ§o</p>
                 <p className="font-semibold text-foreground">
                   {patient.address}, {patient.city} - {patient.state}
                 </p>
@@ -209,7 +215,7 @@ export default function PatientProfile() {
               </div>
               {patient.emergency_contact_name && (
                 <div>
-                  <p className="text-muted-foreground">Contato de Emergência</p>
+                  <p className="text-muted-foreground">Contato de EmergÃªncia</p>
                   <p className="font-semibold text-foreground">{patient.emergency_contact_name}</p>
                   {patient.emergency_contact_phone && (
                     <p className="text-muted-foreground">{patient.emergency_contact_phone}</p>
@@ -221,12 +227,12 @@ export default function PatientProfile() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Informações Médicas</CardTitle>
+              <CardTitle className="text-base">InformaÃ§Ãµes MÃ©dicas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {patient.medical_history && (
                 <div>
-                  <p className="text-muted-foreground">Histórico Médico</p>
+                  <p className="text-muted-foreground">HistÃ³rico MÃ©dico</p>
                   <p className="font-semibold text-foreground">{patient.medical_history}</p>
                 </div>
               )}
@@ -253,19 +259,19 @@ export default function PatientProfile() {
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Processamento de Dados</span>
                 <Badge variant={patient.consent_data_processing ? "default" : "secondary"}>
-                  {patient.consent_data_processing ? "Autorizado" : "Não autorizado"}
+                  {patient.consent_data_processing ? "Autorizado" : "NÃ£o autorizado"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">WhatsApp</span>
                 <Badge variant={patient.consent_whatsapp ? "default" : "secondary"}>
-                  {patient.consent_whatsapp ? "Autorizado" : "Não autorizado"}
+                  {patient.consent_whatsapp ? "Autorizado" : "NÃ£o autorizado"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Email</span>
                 <Badge variant={patient.consent_email ? "default" : "secondary"}>
-                  {patient.consent_email ? "Autorizado" : "Não autorizado"}
+                  {patient.consent_email ? "Autorizado" : "NÃ£o autorizado"}
                 </Badge>
               </div>
             </CardContent>
@@ -276,10 +282,10 @@ export default function PatientProfile() {
         <div className="lg:col-span-3">
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="evolution">Evolução Clínica</TabsTrigger>
+              <TabsTrigger value="overview">VisÃ£o Geral</TabsTrigger>
+              <TabsTrigger value="evolution">EvoluÃ§Ã£o ClÃ­nica</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="history">Histórico</TabsTrigger>
+              <TabsTrigger value="history">HistÃ³rico</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
@@ -287,7 +293,7 @@ export default function PatientProfile() {
                 <CardHeader>
                   <CardTitle>Resumo do Paciente</CardTitle>
                   <CardDescription>
-                    Informações gerais sobre o paciente e seu acompanhamento
+                    InformaÃ§Ãµes gerais sobre o paciente e seu acompanhamento
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -297,17 +303,17 @@ export default function PatientProfile() {
                       <div className="space-y-2 text-sm">
                         <p><span className="text-muted-foreground">Nome:</span> {patient.full_name}</p>
                         <p><span className="text-muted-foreground">Idade:</span> {calculateAge(patient.birth_date)} anos</p>
-                        <p><span className="text-muted-foreground">Gênero:</span> {patient.gender}</p>
+                        <p><span className="text-muted-foreground">GÃªnero:</span> {patient.gender}</p>
                         <p><span className="text-muted-foreground">Telefone:</span> {patient.phone}</p>
                         <p><span className="text-muted-foreground">Email:</span> {patient.email}</p>
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">Informações Médicas</h4>
+                      <h4 className="font-semibold mb-2">InformaÃ§Ãµes MÃ©dicas</h4>
                       <div className="space-y-2 text-sm">
                         <p><span className="text-muted-foreground">Especialidade:</span> {patient.specialty}</p>
                         {patient.medical_history && (
-                          <p><span className="text-muted-foreground">Histórico:</span> {patient.medical_history}</p>
+                          <p><span className="text-muted-foreground">HistÃ³rico:</span> {patient.medical_history}</p>
                         )}
                         {patient.allergies && (
                           <p><span className="text-muted-foreground">Alergias:</span> {patient.allergies}</p>
@@ -323,13 +329,13 @@ export default function PatientProfile() {
                     <h4 className="font-semibold mb-2">Status do Cadastro</h4>
                     <div className="flex flex-wrap gap-2">
                       <Badge variant={patient.consent_data_processing ? "default" : "secondary"}>
-                        Processamento de Dados: {patient.consent_data_processing ? "Autorizado" : "Não autorizado"}
+                        Processamento de Dados: {patient.consent_data_processing ? "Autorizado" : "NÃ£o autorizado"}
                       </Badge>
                       <Badge variant={patient.consent_whatsapp ? "default" : "secondary"}>
-                        WhatsApp: {patient.consent_whatsapp ? "Autorizado" : "Não autorizado"}
+                        WhatsApp: {patient.consent_whatsapp ? "Autorizado" : "NÃ£o autorizado"}
                       </Badge>
                       <Badge variant={patient.consent_email ? "default" : "secondary"}>
-                        Email: {patient.consent_email ? "Autorizado" : "Não autorizado"}
+                        Email: {patient.consent_email ? "Autorizado" : "NÃ£o autorizado"}
                       </Badge>
                     </div>
                   </div>
@@ -355,7 +361,7 @@ export default function PatientProfile() {
             <TabsContent value="history" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Histórico de alterações</CardTitle>
+                  <CardTitle>HistÃ³rico de alteraÃ§Ãµes</CardTitle>
                   <CardDescription>Eventos registrados para este paciente</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -366,7 +372,7 @@ export default function PatientProfile() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="text-left">
-                            <th className="py-2 pr-4">Ação</th>
+                            <th className="py-2 pr-4">AÃ§Ã£o</th>
                             <th className="py-2 pr-4">Data</th>
                             <th className="py-2">Detalhes</th>
                           </tr>
@@ -396,3 +402,4 @@ export default function PatientProfile() {
     </div>
   );
 }
+

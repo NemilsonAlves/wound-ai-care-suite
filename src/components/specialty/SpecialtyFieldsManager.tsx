@@ -1,5 +1,5 @@
 import React from 'react';
-import { useClinicConfig } from '@/contexts/ClinicConfigContext';
+import { useClinicConfig } from '@/contexts/ClinicConfigContextBase';
 import CurativosFields from './CurativosFields';
 import DermatologiaFields from './DermatologiaFields';
 import CirurgiasFields from './CirurgiasFields';
@@ -9,9 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Sparkles, Scissors, AlertCircle } from 'lucide-react';
 
 interface SpecialtyData {
-  curativos?: any;
-  dermatologia?: any;
-  cirurgias?: any;
+  curativos?: Record<string, unknown>;
+  dermatologia?: Record<string, unknown>;
+  cirurgias?: Record<string, unknown>;
 }
 
 interface SpecialtyFieldsManagerProps {
@@ -29,7 +29,7 @@ const SpecialtyFieldsManager: React.FC<SpecialtyFieldsManagerProps> = ({
 }) => {
   const { config } = useClinicConfig();
 
-  const handleSpecialtyChange = (specialty: string, specialtyData: any) => {
+  const handleSpecialtyChange = (specialty: string, specialtyData: Record<string, unknown>) => {
     onChange({
       ...data,
       [specialty]: specialtyData

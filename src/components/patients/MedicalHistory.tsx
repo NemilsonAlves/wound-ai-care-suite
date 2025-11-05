@@ -181,7 +181,7 @@ export function MedicalHistory({
                     <select
                       id="category"
                       value={newRecord.category}
-                      onChange={(e) => setNewRecord(prev => ({ ...prev, category: e.target.value as any }))}
+          onChange={(e) => setNewRecord(prev => ({ ...prev, category: e.target.value as string }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {categories.map(cat => (

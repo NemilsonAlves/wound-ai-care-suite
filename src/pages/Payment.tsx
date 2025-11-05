@@ -19,7 +19,7 @@ import {
   Building
 } from 'lucide-react';
 import PaymentService from '../services/paymentService';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContextBase';
 
 interface PaymentPlan {
   id: string;
@@ -31,6 +31,13 @@ interface PaymentPlan {
   icon: React.ReactNode;
 }
 
+interface ConsultationType {
+  id: 'online' | 'presencial' | string;
+  name: string;
+  price: number;
+  duration: string;
+  description: string;
+}
 const Payment: React.FC = () => {
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(null);
@@ -46,14 +53,14 @@ const Payment: React.FC = () => {
   const plans: PaymentPlan[] = [
     {
       id: 'basic',
-      name: 'Básico',
+      name: 'BÃ¡sico',
       price: 29.90,
-      period: 'mês',
+      period: 'mÃªs',
       icon: <Star className="h-6 w-6" />,
       features: [
-        'Até 5 consultas por mês',
-        'Acompanhamento básico de feridas',
-        'Relatórios mensais',
+        'AtÃ© 5 consultas por mÃªs',
+        'Acompanhamento bÃ¡sico de feridas',
+        'RelatÃ³rios mensais',
         'Suporte por email',
         'Acesso ao portal do paciente'
       ]
@@ -62,39 +69,39 @@ const Payment: React.FC = () => {
       id: 'premium',
       name: 'Premium',
       price: 59.90,
-      period: 'mês',
+      period: 'mÃªs',
       popular: true,
       icon: <Zap className="h-6 w-6" />,
       features: [
         'Consultas ilimitadas',
-        'Análise avançada com IA',
-        'Relatórios detalhados',
-        'Suporte prioritário 24/7',
-        'Telemedicina incluída',
-        'Histórico completo',
-        'Notificações WhatsApp'
+        'AnÃ¡lise avanÃ§ada com IA',
+        'RelatÃ³rios detalhados',
+        'Suporte prioritÃ¡rio 24/7',
+        'Telemedicina incluÃ­da',
+        'HistÃ³rico completo',
+        'NotificaÃ§Ãµes WhatsApp'
       ]
     },
     {
       id: 'enterprise',
       name: 'Empresarial',
       price: 199.90,
-      period: 'mês',
+      period: 'mÃªs',
       icon: <Building className="h-6 w-6" />,
       features: [
         'Tudo do Premium',
-        'Múltiplos usuários (até 10)',
+        'MÃºltiplos usuÃ¡rios (atÃ© 10)',
         'Dashboard administrativo',
         'API personalizada',
         'Treinamento da equipe',
         'Suporte dedicado',
-        'Relatórios customizados',
-        'Integração com sistemas'
+        'RelatÃ³rios customizados',
+        'IntegraÃ§Ã£o com sistemas'
       ]
     }
   ];
 
-  const consultationTypes = [
+  const consultationTypes: ConsultationType[] = [
     {
       id: 'online',
       name: 'Consulta Online',
@@ -107,7 +114,7 @@ const Payment: React.FC = () => {
       name: 'Consulta Presencial',
       price: 149.90,
       duration: '45 min',
-      description: 'Consulta presencial em clínica parceira'
+      description: 'Consulta presencial em clÃ­nica parceira'
     }
   ];
 
@@ -133,7 +140,7 @@ const Payment: React.FC = () => {
     }
   };
 
-  const handleConsultationPayment = async (consultation: any) => {
+  const handleConsultationPayment = async (consultation: ConsultationType) => {
     setLoading(true);
     try {
       const preference = await PaymentService.createConsultationPayment({
@@ -279,17 +286,17 @@ const Payment: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Informações de Pagamento</CardTitle>
+                <CardTitle>InformaÃ§Ãµes de Pagamento</CardTitle>
                 <CardDescription>
-                  Seus dados estão protegidos com criptografia SSL
+                  Seus dados estÃ£o protegidos com criptografia SSL
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as any)}>
+                <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix' | 'boleto')}>
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="card">
                       <CreditCard className="h-4 w-4 mr-2" />
-                      Cartão
+                      CartÃ£o
                     </TabsTrigger>
                     <TabsTrigger value="pix">PIX</TabsTrigger>
                     <TabsTrigger value="boleto">Boleto</TabsTrigger>
@@ -298,16 +305,16 @@ const Payment: React.FC = () => {
                   <TabsContent value="card" className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <Label htmlFor="cardName">Nome no Cartão</Label>
+                        <Label htmlFor="cardName">Nome no CartÃ£o</Label>
                         <Input
                           id="cardName"
-                          placeholder="João Silva"
+                          placeholder="JoÃ£o Silva"
                           value={cardData.name}
                           onChange={(e) => setCardData({...cardData, name: e.target.value})}
                         />
                       </div>
                       <div className="col-span-2">
-                        <Label htmlFor="cardNumber">Número do Cartão</Label>
+                        <Label htmlFor="cardNumber">NÃºmero do CartÃ£o</Label>
                         <Input
                           id="cardNumber"
                           placeholder="1234 5678 9012 3456"
@@ -341,20 +348,20 @@ const Payment: React.FC = () => {
 
                   <TabsContent value="pix" className="text-center py-8">
                     <div className="space-y-4">
-                      <div className="text-6xl">📱</div>
+                      <div className="text-6xl">ðŸ“±</div>
                       <h3 className="text-lg font-semibold">Pagamento via PIX</h3>
                       <p className="text-muted-foreground">
-                        Após confirmar o pedido, você receberá o código PIX para pagamento
+                        ApÃ³s confirmar o pedido, vocÃª receberÃ¡ o cÃ³digo PIX para pagamento
                       </p>
                     </div>
                   </TabsContent>
 
                   <TabsContent value="boleto" className="text-center py-8">
                     <div className="space-y-4">
-                      <div className="text-6xl">🧾</div>
-                      <h3 className="text-lg font-semibold">Boleto Bancário</h3>
+                      <div className="text-6xl">ðŸ§¾</div>
+                      <h3 className="text-lg font-semibold">Boleto BancÃ¡rio</h3>
                       <p className="text-muted-foreground">
-                        O boleto será gerado após a confirmação do pedido
+                        O boleto serÃ¡ gerado apÃ³s a confirmaÃ§Ã£o do pedido
                       </p>
                     </div>
                   </TabsContent>
@@ -376,3 +383,6 @@ const Payment: React.FC = () => {
 };
 
 export default Payment;
+
+
+

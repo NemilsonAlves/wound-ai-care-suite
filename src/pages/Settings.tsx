@@ -1,4 +1,4 @@
-import { Settings as SettingsIcon, User, Bell, Shield, Database, Palette, Globe } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Database, Palette, Globe, Brain, Zap, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { aiProviderService, AIProviderName } from "@/services/aiProviderService";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
+  const navigate = useNavigate();
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -43,6 +46,7 @@ export default function Settings() {
             <Globe className="w-4 h-4" />
             Idioma
           </TabsTrigger>
+          
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
@@ -95,6 +99,8 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
+        
+
         <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
@@ -110,6 +116,17 @@ export default function Settings() {
                 <Switch defaultChecked />
               </div>
               <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Integração WhatsApp</Label>
+                  <p className="text-sm text-muted-foreground">Configurar e gerenciar WhatsApp Business</p>
+                </div>
+                <Button variant="outline" onClick={() => navigate('/whatsapp')}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Abrir WhatsApp
+                </Button>
+              </div>
+              
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Avaliações Pendentes</Label>
@@ -229,7 +246,9 @@ export default function Settings() {
                     <Input
                       id="openai-key"
                       type="password"
+                      defaultValue={aiProviderService.getConfig().openai?.apiKey || ''}
                       placeholder="sk-..."
+                      onBlur={(e) => aiProviderService.saveConfig({ openai: { apiKey: e.target.value } })}
                     />
                     <p className="text-xs text-muted-foreground">
                       Para usar modelos GPT-4, GPT-4o
@@ -241,7 +260,9 @@ export default function Settings() {
                     <Input
                       id="claude-key"
                       type="password"
+                      defaultValue={aiProviderService.getConfig().claude?.apiKey || ''}
                       placeholder="sk-ant-..."
+                      onBlur={(e) => aiProviderService.saveConfig({ claude: { apiKey: e.target.value } })}
                     />
                     <p className="text-xs text-muted-foreground">
                       Para usar modelos Claude 3 Opus, Sonnet
@@ -253,14 +274,16 @@ export default function Settings() {
                     <Input
                       id="groq-key"
                       type="password"
+                      defaultValue={aiProviderService.getConfig().groq?.apiKey || ''}
                       placeholder="gsk_..."
+                      onBlur={(e) => aiProviderService.saveConfig({ groq: { apiKey: e.target.value } })}
                     />
                     <p className="text-xs text-muted-foreground">
                       Para inferência rápida com Llama, Mixtral
                     </p>
                   </div>
 
-                  <Button className="w-full mt-4">
+                  <Button className="w-full mt-4" onClick={() => alert('Configurações de IA salvas')}>
                     Salvar Configurações de IA
                   </Button>
                 </div>

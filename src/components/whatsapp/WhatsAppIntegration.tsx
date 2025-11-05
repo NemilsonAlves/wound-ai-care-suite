@@ -25,6 +25,7 @@ interface MessageTemplate {
 }
 
 const WhatsAppIntegration: React.FC = () => {
+  const enableMockData = (import.meta.env.VITE_ENABLE_MOCK_DATA ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true';
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
@@ -35,6 +36,11 @@ const WhatsAppIntegration: React.FC = () => {
 
   // Mock data
   useEffect(() => {
+    if (!enableMockData) {
+      setTemplates([]);
+      setMessages([]);
+      return;
+    }
     const mockTemplates: MessageTemplate[] = [
       {
         id: '1',
@@ -112,16 +118,20 @@ const WhatsAppIntegration: React.FC = () => {
 
     setTemplates(mockTemplates);
     setMessages(mockMessages);
-  }, []);
+  }, [enableMockData]);
 
-  const mockPatients = [
+  const mockPatients = enableMockData ? [
     { id: '1', name: 'Maria Santos', phone: '+5511999999999' },
     { id: '2', name: 'João Oliveira', phone: '+5511888888888' },
     { id: '3', name: 'Ana Silva', phone: '+5511777777777' },
     { id: '4', name: 'Carlos Ferreira', phone: '+5511666666666' }
-  ];
+  ] : [];
 
   const sendMessage = () => {
+    if (!enableMockData) {
+      alert('Envio de mensagens (mock) desativado. Defina VITE_ENABLE_MOCK_DATA=true para habilitar em desenvolvimento.');
+      return;
+    }
     if (!customMessage && !selectedTemplate) {
       alert('Selecione um template ou digite uma mensagem personalizada.');
       return;
@@ -229,6 +239,10 @@ const WhatsAppIntegration: React.FC = () => {
   };
 
   const scheduleAutomaticReminders = () => {
+    if (!enableMockData) {
+      alert('Lembretes automáticos (mock) desativados. Defina VITE_ENABLE_MOCK_DATA=true para habilitar em desenvolvimento.');
+      return;
+    }
     // Simular agendamento automático de lembretes
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -258,13 +272,22 @@ const WhatsAppIntegration: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={scheduleAutomaticReminders}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+            className={`${enableMockData ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'} px-4 py-2 rounded-lg flex items-center gap-2`}
+            disabled={!enableMockData}
           >
             <Bell className="w-4 h-4" />
             Lembretes Automáticos
           </button>
         </div>
       </div>
+
+      {!enableMockData && (
+        <div className="mb-6 border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded">
+          <p className="text-sm text-yellow-800">
+            Recursos de demonstração com dados fictícios estão desativados. Para habilitar em desenvolvimento, defina <code>VITE_ENABLE_MOCK_DATA=true</code> no seu arquivo .env.
+          </p>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
@@ -388,7 +411,8 @@ const WhatsAppIntegration: React.FC = () => {
             <div className="flex justify-end">
               <button
                 onClick={sendMessage}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                className={`${enableMockData ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'} px-6 py-2 rounded-lg flex items-center gap-2`}
+                disabled={!enableMockData}
               >
                 <Send className="w-4 h-4" />
                 {scheduledTime ? 'Agendar Envio' : 'Enviar Agora'}

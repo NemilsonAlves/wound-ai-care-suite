@@ -97,3 +97,22 @@ Após aplicar este script:
 
 ---
 **⚠️ IMPORTANTE**: Este script corrige APENAS o problema RLS da tabela `profiles`. A tabela `patients` já está funcionando perfeitamente.
+## Correção segura de RLS na tabela `profiles`
+
+Para resolver o erro de "infinite recursion detected in policy for relation \"profiles\"" sem abrir acesso público, use o script `fix-rls-profiles-secure.sql`.
+
+### Passos para aplicar no Supabase
+- Abra o **SQL Editor** do seu projeto no Supabase.
+- Copie o conteúdo de `fix-rls-profiles-secure.sql` e execute.
+- Verifique as políticas com:
+  ```sql
+  SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+  FROM pg_policies
+  WHERE tablename = 'profiles';
+  ```
+- Teste acesso autenticado: com um usuário logado, apenas seu próprio registro (`id = auth.uid()`) deve ser legível/atualizável/excluível.
+
+### Observações importantes
+- Evitamos subconsultas ou funções que consultem `profiles` dentro das políticas para eliminar recursão.
+- Se não desejar permitir `DELETE`, remova ou comente a política `profiles_delete_own`.
+- Em ambientes multi-tenant ou com papéis administrativos, crie políticas adicionais específicas para estes papéis.

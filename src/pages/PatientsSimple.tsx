@@ -2,15 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PatientService } from '../services/patientService';
+import { Patient } from '@/types/patient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Users, RefreshCw, AlertCircle, CheckCircle, Clock, Wifi, WifiOff, Database, Plus } from 'lucide-react';
 
+type ConnectionResult = {
+  success: boolean;
+  message: string;
+  details: Record<string, unknown>;
+  timestamp: string;
+};
+
 export default function PatientsSimple() {
   const navigate = useNavigate();
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
-  const [connectionDetails, setConnectionDetails] = useState<any>(null);
+  const [connectionDetails, setConnectionDetails] = useState<ConnectionResult | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
   // Testar conexão detalhada
@@ -51,7 +59,7 @@ export default function PatientsSimple() {
     isRefetching,
     error,
     refetch
-  } = useQuery({
+  } = useQuery<Patient[]>({
     queryKey: ['patients-simple'],
     queryFn: async () => {
       console.log('📊 Buscando pacientes...');
@@ -123,14 +131,15 @@ export default function PatientsSimple() {
         };
         setConnectionDetails(enhancedResult);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erro durante retry:', error);
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
       setConnectionStatus('error');
       setConnectionDetails({
         success: false,
         message: 'Erro durante tentativa de reconexão',
         details: { 
-          error: error.message,
+          error: message,
           retryFailed: true
         },
         timestamp: new Date().toISOString()
@@ -403,7 +412,7 @@ export default function PatientsSimple() {
             {/* Lista de pacientes */}
             {patients.length > 0 ? (
               <div className="grid gap-4">
-                {patients.map((patient: any, index: number) => (
+                {patients.map((patient: Patient, index: number) => (
                   <div key={patient.id || index} className="border rounded-lg p-4 hover:bg-gray-50">
                     <div className="flex items-start justify-between">
                       <div>

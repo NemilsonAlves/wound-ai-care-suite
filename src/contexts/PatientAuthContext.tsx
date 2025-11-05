@@ -1,71 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-
-interface PatientProfile {
-  id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  birth_date: string;
-  cpf: string;
-  avatar_url?: string;
-  address?: {
-    street: string;
-    number: string;
-    complement?: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-    zip_code: string;
-  };
-  emergency_contact?: {
-    name: string;
-    relationship: string;
-    phone: string;
-  };
-  medical_info?: {
-    allergies?: string;
-    medications?: string;
-    medical_history?: string;
-    insurance_provider?: string;
-    insurance_number?: string;
-  };
-  preferences?: {
-    notifications_email: boolean;
-    notifications_sms: boolean;
-    language: string;
-  };
-}
-
-interface PatientSession {
-  access_token: string;
-  refresh_token: string;
-  expires_at: number;
-  patient_id: string;
-}
-
-interface PatientAuthContextType {
-  patient: PatientProfile | null;
-  session: PatientSession | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signOut: () => Promise<void>;
-  updateProfile: (data: Partial<PatientProfile>) => Promise<{ success: boolean; error?: string }>;
-  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  refreshSession: () => Promise<void>;
-}
-
-const PatientAuthContext = createContext<PatientAuthContextType | undefined>(undefined);
-
-export const usePatientAuth = () => {
-  const context = useContext(PatientAuthContext);
-  if (context === undefined) {
-    throw new Error('usePatientAuth must be used within a PatientAuthProvider');
-  }
-  return context;
-};
+import { PatientAuthContext, PatientAuthContextType, PatientProfile, PatientSession } from './PatientAuthContextBase';
 
 interface PatientAuthProviderProps {
   children: ReactNode;
@@ -109,19 +45,7 @@ export const PatientAuthProvider: React.FC<PatientAuthProviderProps> = ({ childr
     loadStoredSession();
   }, []);
 
-  // Auto-refresh da sessão
-  useEffect(() => {
-    if (session) {
-      const timeUntilExpiry = session.expires_at - Date.now();
-      const refreshTime = Math.max(timeUntilExpiry - 5 * 60 * 1000, 60 * 1000); // 5 min antes ou 1 min mínimo
-      
-      const refreshTimer = setTimeout(() => {
-        refreshSession();
-      }, refreshTime);
-
-      return () => clearTimeout(refreshTimer);
-    }
-  }, [session]);
+  
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -204,7 +128,7 @@ export const PatientAuthProvider: React.FC<PatientAuthProviderProps> = ({ childr
     }
   };
 
-  const signOut = async (): Promise<void> => {
+  const signOut = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       
@@ -224,7 +148,7 @@ export const PatientAuthProvider: React.FC<PatientAuthProviderProps> = ({ childr
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const updateProfile = async (data: Partial<PatientProfile>): Promise<{ success: boolean; error?: string }> => {
     if (!patient || !session) {
@@ -301,7 +225,7 @@ export const PatientAuthProvider: React.FC<PatientAuthProviderProps> = ({ childr
     }
   };
 
-  const refreshSession = async (): Promise<void> => {
+  const refreshSession = useCallback(async (): Promise<void> => {
     if (!session) return;
 
     try {
@@ -329,7 +253,21 @@ export const PatientAuthProvider: React.FC<PatientAuthProviderProps> = ({ childr
       console.error('Erro ao renovar sessão:', error);
       await signOut();
     }
-  };
+  }, [session, signOut]);
+
+  // Auto-refresh da sessão (posicionado após refreshSession para evitar TDZ)
+  useEffect(() => {
+    if (session) {
+      const timeUntilExpiry = session.expires_at - Date.now();
+      const refreshTime = Math.max(timeUntilExpiry - 5 * 60 * 1000, 60 * 1000);
+
+      const refreshTimer = setTimeout(() => {
+        refreshSession();
+      }, refreshTime);
+
+      return () => clearTimeout(refreshTimer);
+    }
+  }, [session, refreshSession]);
 
   const value: PatientAuthContextType = {
     patient,

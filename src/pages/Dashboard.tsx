@@ -7,7 +7,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -80,9 +80,9 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const generateMonthlyData = (patients: any[]): MonthlyData[] => {
+  const generateMonthlyData = (patients: Patient[]): MonthlyData[] => {
     const months = [];
     const now = new Date();
     
@@ -117,7 +117,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [loadDashboardData]);
 
   if (loading) {
     return (

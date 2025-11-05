@@ -18,7 +18,12 @@ interface DateInputProps {
   'aria-invalid'?: boolean | 'true' | 'false' | undefined;
 }
 
-const CustomInput = forwardRef<HTMLInputElement, any>(
+interface CustomInputProps extends React.ComponentPropsWithoutRef<'input'> {
+  value?: string;
+  onClick?: React.MouseEventHandler<HTMLInputElement>;
+}
+
+const CustomInput = forwardRef<HTMLInputElement, CustomInputProps>(
   ({ value, onClick, placeholder, className, id, required, ...rest }, ref) => (
     <Input
       id={id}
@@ -52,4 +57,3 @@ export function DateInput({ id, value, onChange, placeholder, minDate, maxDate, 
     />
   );
 }
-

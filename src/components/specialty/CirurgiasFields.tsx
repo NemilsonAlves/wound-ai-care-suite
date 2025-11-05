@@ -72,7 +72,7 @@ interface CirurgiasFieldsProps {
 }
 
 const CirurgiasFields: React.FC<CirurgiasFieldsProps> = ({ data, onChange, readOnly = false }) => {
-  const handleChange = (field: keyof CirurgiasData, value: any) => {
+  const handleChange = (field: keyof CirurgiasData, value: CirurgiasData[keyof CirurgiasData]) => {
     onChange({ ...data, [field]: value });
   };
 

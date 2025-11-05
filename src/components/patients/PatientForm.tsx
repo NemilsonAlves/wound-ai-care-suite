@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 import { sanitizePatientData as normalizeDefaults } from '@/lib/validations';
+import { supabase } from '@/lib/supabase';
 
 // ValidaÃ§Ãµes avanÃ§adas com mensagens personalizadas
 const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
@@ -205,7 +206,7 @@ const states = [
 export function PatientForm({ onSuccess, onCancel, initialData, isEditing = false, patientId }: PatientFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [registeredPatient, setRegisteredPatient] = useState<any>(null);
+  const [registeredPatient, setRegisteredPatient] = useState<Patient | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
   const [cpfValidation, setCpfValidation] = useState<'valid' | 'invalid' | 'checking' | null>(null);
@@ -369,7 +370,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
         });
       } else {
         // Checagem de duplicidade antes de criar
-        const similar = await PatientDuplicationService.findSimilarPatients(formattedData as any);
+  const similar = await PatientDuplicationService.findSimilarPatients(formattedData as Record<string, unknown>);
         if (similar.length > 0) {
           setDupCandidates(similar);
           setDupDialogOpen(true);
@@ -378,22 +379,41 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
         }
         result = await PatientService.create(formattedData);
         
-        // Processar documentos uploadados
+        // Processar documentos uploadados (Supabase Storage)
         if (uploadedDocuments.length > 0) {
           setIsUploadingDocument(true);
           try {
+            const bucket = import.meta.env.VITE_PATIENT_DOC_BUCKET || 'patient-documents';
             for (const doc of uploadedDocuments) {
-              // Simular upload para URL (em produÃ§Ã£o, usar serviÃ§o de storage real)
-              const mockUrl = `https://storage.example.com/documents/${result.id}/${doc.name}`;
-              
-              await PatientService.addDocument(result.id, {
-                name: doc.name,
-                type: doc.type,
-                url: mockUrl,
-                size: doc.size
-              });
+              try {
+                const timestamp = Date.now();
+                const safeName = doc.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                const filePath = `${result.id}/${timestamp}_${safeName}`;
+
+                const { error: uploadError } = await supabase.storage
+                  .from(bucket)
+                  .upload(filePath, doc.file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicData } = supabase.storage
+                  .from(bucket)
+                  .getPublicUrl(filePath);
+
+                const publicUrl = publicData.publicUrl;
+
+                await PatientService.addDocument(result.id, {
+                  name: doc.name,
+                  type: doc.type,
+                  url: publicUrl,
+                  size: doc.size
+                });
+              } catch (singleDocError) {
+                console.warn('Erro ao enviar/anexar documento:', singleDocError);
+                toast.warning(`Erro ao anexar: ${doc.name}`);
+              }
             }
-            toast.success(`${uploadedDocuments.length} documento(s) anexado(s) com sucesso!`);
+            toast.success(`${uploadedDocuments.length} documento(s) processado(s)!`);
           } catch (docError) {
             console.warn('Erro ao anexar documentos:', docError);
             toast.warning('Paciente criado, mas houve erro ao anexar alguns documentos');
@@ -457,7 +477,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
     try {
       setIsLoading(true);
       const formValues = getValues();
-      const formattedData: any = {
+      const formattedData: Partial<PatientFormData> & { birth_date: string } = {
         ...formValues,
         birth_date: formValues.birth_date.toISOString().split('T')[0],
       };
@@ -466,16 +486,37 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
       if (uploadedDocuments.length > 0) {
         setIsUploadingDocument(true);
         try {
+          const bucket = import.meta.env.VITE_PATIENT_DOC_BUCKET || 'patient-documents';
           for (const doc of uploadedDocuments) {
-            const mockUrl = `https://storage.example.com/documents/${result.id}/${doc.name}`;
-            await PatientService.addDocument(result.id, {
-              name: doc.name,
-              type: doc.type,
-              url: mockUrl,
-              size: doc.size
-            });
+            try {
+              const timestamp = Date.now();
+              const safeName = doc.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+              const filePath = `${result.id}/${timestamp}_${safeName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from(bucket)
+                .upload(filePath, doc.file);
+
+              if (uploadError) throw uploadError;
+
+              const { data: publicData } = supabase.storage
+                .from(bucket)
+                .getPublicUrl(filePath);
+
+              const publicUrl = publicData.publicUrl;
+
+              await PatientService.addDocument(result.id, {
+                name: doc.name,
+                type: doc.type,
+                url: publicUrl,
+                size: doc.size
+              });
+            } catch (singleDocError) {
+              console.warn('Erro ao enviar/anexar documento:', singleDocError);
+              toast.warning(`Erro ao anexar: ${doc.name}`);
+            }
           }
-          toast.success(`${uploadedDocuments.length} documento(s) anexado(s) com sucesso!`);
+          toast.success(`${uploadedDocuments.length} documento(s) processado(s)!`);
         } catch (docError) {
           console.warn('Erro ao anexar documentos:', docError);
           toast.warning('Paciente criado, mas houve erro ao anexar alguns documentos');
@@ -517,7 +558,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
     try {
       setIsLoading(true);
       const formValues = getValues();
-      const formattedData: any = {
+      const formattedData: Partial<PatientFormData> & { birth_date: string } = {
         ...formValues,
         birth_date: formValues.birth_date.toISOString().split('T')[0],
       };
@@ -540,7 +581,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
       ? ['full_name', 'cpf', 'birth_date', 'gender', 'phone']
       : ['specialty'];
     
-    const isStepValid = await trigger(fieldsToValidate as any);
+  const isStepValid = await trigger(fieldsToValidate as string[]);
     if (isStepValid) {
       setCurrentStep(currentStep + 1);
     }
@@ -1115,7 +1156,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="profundidade">Profundidade</Label>
-                    <Select onValueChange={(value) => setValue('specialty_data.curativos.profundidade', value as any)}>
+      <Select onValueChange={(value) => setValue('specialty_data.curativos.profundidade', value as string)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a profundidade" />
                       </SelectTrigger>
@@ -1267,7 +1308,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="anestesia">Tipo de Anestesia</Label>
-                    <Select onValueChange={(value) => setValue('specialty_data.cirurgias.anestesia', value as any)}>
+      <Select onValueChange={(value) => setValue('specialty_data.cirurgias.anestesia', value as string)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo de anestesia" />
                       </SelectTrigger>
@@ -1443,7 +1484,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="profundidade">Profundidade</Label>
-                    <Select onValueChange={(value) => setValue('specialty_data.curativos.profundidade', value as any)}>
+      <Select onValueChange={(value) => setValue('specialty_data.curativos.profundidade', value as string)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a profundidade" />
                       </SelectTrigger>
@@ -1602,7 +1643,7 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="anestesia">Tipo de Anestesia</Label>
-                    <Select onValueChange={(value) => setValue('specialty_data.cirurgias.anestesia', value as any)}>
+      <Select onValueChange={(value) => setValue('specialty_data.cirurgias.anestesia', value as string)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo de anestesia" />
                       </SelectTrigger>
@@ -1745,8 +1786,6 @@ export function PatientForm({ onSuccess, onCancel, initialData, isEditing = fals
   );
 }
 export default PatientForm;
-
-
 
 
 

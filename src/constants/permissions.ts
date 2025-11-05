@@ -83,13 +83,13 @@ export const ROLE_MODULE_MAPPING = {
 
 // Função para verificar se um módulo é exclusivo do SuperAdmin
 export const isSuperAdminOnlyModule = (module: string): boolean => {
-  return SUPERADMIN_ONLY_MODULES.includes(module as any);
+  return (SUPERADMIN_ONLY_MODULES as string[]).includes(module as string);
 };
 
 // Função para verificar se um usuário pode acessar um módulo
 export const canAccessModule = (userRole: string, module: string): boolean => {
   const allowedModules = ROLE_MODULE_MAPPING[userRole as keyof typeof ROLE_MODULE_MAPPING] || [];
-  return allowedModules.includes(module as any);
+  return (allowedModules as string[]).includes(module as string);
 };
 
 // Definições de permissões críticas

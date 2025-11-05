@@ -33,7 +33,7 @@ import { InventoryService } from '@/services/inventoryService';
 import { StockMovement, InventoryItem } from '@/types/inventory';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PermissionGuard } from '@/components/common/PermissionGuard';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContextBase';
 
 interface MovementsTabProps {
   onDataChange: () => void;
@@ -217,7 +217,7 @@ const MovementsTab = ({ onDataChange }: MovementsTabProps) => {
                         value={formData.movement_type}
                         onChange={(e) => setFormData(prev => ({ 
                           ...prev, 
-                          movement_type: e.target.value as any 
+        movement_type: e.target.value as string
                         }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required

@@ -384,7 +384,7 @@ export default function WagnerProtocol() {
                 <div className="p-4 bg-muted/30">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <Badge variant={grade.color as any} className="text-lg px-3 py-1">
+                      <Badge variant={grade.color as 'default' | 'secondary' | 'destructive' | 'outline'} className="text-lg px-3 py-1">
                         Grau {grade.grade}
                       </Badge>
                       <h3 className="font-semibold text-lg">{grade.title}</h3>

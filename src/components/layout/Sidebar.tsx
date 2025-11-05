@@ -13,8 +13,7 @@ const menuItems = [
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: UsersRound, label: "Equipe", path: "/equipe" },
   { icon: Building2, label: "Setores", path: "/setores" },
-  { icon: CreditCard, label: "Pagamentos", path: "/payment" },
-  { icon: MessageCircle, label: "WhatsApp", path: "/whatsapp" },
+  
   { icon: Users, label: "Usuários", path: "/gerenciar-usuarios" },
   { icon: Briefcase, label: "Config. Negócio", path: "/configuracoes-negocio" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
@@ -37,7 +36,7 @@ export function Sidebar() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
               <ClipboardCheck className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-sidebar-foreground">WoundCare AI</span>
+<span className="font-semibold text-sidebar-foreground">Central de Pele AI</span>
           </div>
         )}
         <Button

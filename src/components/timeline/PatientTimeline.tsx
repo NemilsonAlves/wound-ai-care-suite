@@ -14,7 +14,7 @@ interface TimelineEvent {
     url: string;
     name: string;
   }[];
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface PatientTimelineProps {

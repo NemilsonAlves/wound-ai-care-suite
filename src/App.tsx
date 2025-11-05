@@ -33,6 +33,7 @@ const NewPatient = lazy(() => import("./pages/NewPatient"));
 const EditPatient = lazy(() => import("./pages/EditPatient"));
 const Assessments = lazy(() => import("./pages/Assessments"));
 const NewAssessment = lazy(() => import("./pages/NewAssessment"));
+const AssessmentDetails = lazy(() => import("./pages/AssessmentDetails"));
 const Protocols = lazy(() => import("./pages/Protocols"));
 const BradenProtocol = lazy(() => import("./pages/BradenProtocol"));
 const PushProtocol = lazy(() => import("./pages/PushProtocol"));
@@ -107,7 +108,10 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
               {/* Public routes */}
-              <Route path="/demo" element={<DemoLogin />} />
+              {(() => {
+                const enableDemoAuth = (import.meta.env.VITE_ENABLE_DEMO_AUTH ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true';
+                return enableDemoAuth ? (<Route path="/demo" element={<DemoLogin />} />) : null;
+              })()}
               <Route path="/portal/login" element={<PatientLogin />} />
               <Route path="/portal" element={
                 <PatientRoute>
@@ -122,7 +126,10 @@ const App = () => (
             {/* Protected professional routes */}
             <Route path="/" element={
               <ProtectedRoute allowedRoles={['admin', 'professional']}>
-                <Navigate to="/demo" replace />
+                {(() => {
+                  const enableDemoAuth = (import.meta.env.VITE_ENABLE_DEMO_AUTH ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true';
+                  return <Navigate to={enableDemoAuth ? '/demo' : '/dashboard'} replace />
+                })()}
               </ProtectedRoute>
             } />
             <Route path="/dashboard" element={
@@ -205,6 +212,11 @@ const App = () => (
             <Route path="/avaliacoes/nova" element={
               <ProtectedRoute allowedRoles={['admin', 'professional']}>
                 <MainLayout><NewAssessment /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/avaliacoes/:id" element={
+              <ProtectedRoute allowedRoles={['admin', 'professional']}>
+                <MainLayout><AssessmentDetails /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/protocolos" element={

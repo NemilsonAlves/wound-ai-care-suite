@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { aiProviderService } from '@/services/aiProviderService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -395,7 +396,8 @@ const SystemSettings: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Análise de IA</Label>
-                      <p className="text-sm text-gray-600">OpenAI para análise de imagens</p>
+                      <p className="text-sm text-gray-600">OpenAI/Groq/Claude para análise de imagens</p>
+                      <p className="text-xs text-muted-foreground mt-1">Provedor ativo: {aiProviderService.isConfigured() ? aiProviderService.getConfig().provider : 'nenhum'}</p>
                     </div>
                     <Switch
                       checked={config.integrations.aiAnalysisEnabled}
@@ -407,15 +409,26 @@ const SystemSettings: React.FC = () => {
                   </div>
 
                   <div>
+                    <Button variant="outline" onClick={async () => {
+                      const r = await aiProviderService.testConnection();
+                      alert(r.ok ? 'Conexão IA ativa' : `Falha na IA: ${r.message || ''}`);
+                    }}>Testar Conexão IA</Button>
+                  </div>
+
+                  <div>
                     <Label htmlFor="openai-key">Chave da API OpenAI</Label>
                     <Input
                       id="openai-key"
                       type="password"
                       value={config.integrations.openaiApiKey}
-                      onChange={(e) => setConfig(prev => ({
-                        ...prev,
-                        integrations: { ...prev.integrations, openaiApiKey: e.target.value }
-                      }))}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        aiProviderService.saveConfig({ openai: { apiKey: v } });
+                        setConfig(prev => ({
+                          ...prev,
+                          integrations: { ...prev.integrations, openaiApiKey: v }
+                        }));
+                      }}
                       placeholder="sk-..."
                     />
                   </div>

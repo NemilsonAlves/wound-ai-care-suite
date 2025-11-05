@@ -21,7 +21,7 @@ interface PatientRegistrationReceiptProps {
     created_at?: string;
   };
   onClose?: () => void;
-  onPatientActivated?: (patient: any) => void;
+  onPatientActivated?: (patient: Record<string, unknown>) => void;
 }
 
 export function PatientRegistrationReceipt({ patient, onClose, onPatientActivated }: PatientRegistrationReceiptProps) {
@@ -108,7 +108,7 @@ export function PatientRegistrationReceipt({ patient, onClose, onPatientActivate
             <CheckCircle className="h-12 w-12 text-green-500 mr-3" />
             <div>
               <CardTitle className="text-2xl text-blue-600">Cadastro Realizado com Sucesso!</CardTitle>
-              <p className="text-gray-600 mt-2">WoundCare AI - Sistema de Gestão de Feridas</p>
+      <p className="text-gray-600 mt-2">Central de Pele AI - Sistema de Gestão de Lesões</p>
             </div>
           </div>
         </CardHeader>

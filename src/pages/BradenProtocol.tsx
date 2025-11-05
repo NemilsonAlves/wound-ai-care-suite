@@ -253,7 +253,7 @@ export default function BradenProtocol() {
               <div key={index} className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <Badge variant={level.color as any}>{level.range} pontos</Badge>
+            <Badge variant={level.color as 'default' | 'secondary' | 'destructive' | 'outline'}>{level.range} pontos</Badge>
                     <span className="font-semibold">{level.level}</span>
                   </div>
                   {level.level.includes("Alto") && (

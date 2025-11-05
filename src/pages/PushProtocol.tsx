@@ -250,7 +250,7 @@ export default function PushProtocol() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {healingStatus.map((status, index) => (
                 <div key={index} className="p-4 border rounded-lg text-center">
-                  <Badge variant={status.color as any} className="mb-2">{status.status}</Badge>
+                  <Badge variant={status.color as 'default' | 'secondary' | 'destructive' | 'outline'} className="mb-2">{status.status}</Badge>
                   <div className="font-medium">{status.range}</div>
                   <div className="text-sm text-muted-foreground mt-1">{status.description}</div>
                 </div>
@@ -264,7 +264,7 @@ export default function PushProtocol() {
               {interventionGuidelines.map((guideline, index) => (
                 <div key={index} className="p-4 border rounded-lg">
                   <div className="flex items-center gap-2 mb-3">
-                    <Badge variant={guideline.color as any}>{guideline.category}</Badge>
+                    <Badge variant={guideline.color as 'default' | 'secondary' | 'destructive' | 'outline'}>{guideline.category}</Badge>
                   </div>
                   <ul className="space-y-1">
                     {guideline.interventions.map((intervention, intIndex) => (

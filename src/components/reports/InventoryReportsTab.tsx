@@ -86,8 +86,10 @@ const InventoryReportsTab = () => {
     }
   };
 
+  type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
   const getMovementTypeBadge = (type: string) => {
-    const typeMap: Record<string, { variant: any; label: string }> = {
+    const typeMap: Record<string, { variant: BadgeVariant; label: string }> = {
       'entrada': { variant: 'default', label: 'Entrada' },
       'saida': { variant: 'destructive', label: 'Saída' },
       'ajuste': { variant: 'secondary', label: 'Ajuste' },

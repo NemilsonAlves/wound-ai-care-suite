@@ -118,7 +118,7 @@ export default function Appointments() {
 
   const handleStatusChange = async (appointmentId: string, newStatus: string) => {
     try {
-      await AppointmentService.updateAppointment(appointmentId, { status: newStatus as any });
+  await AppointmentService.updateAppointment(appointmentId, { status: newStatus as 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' });
       refetch();
     } catch (error) {
       console.error('Error updating appointment status:', error);

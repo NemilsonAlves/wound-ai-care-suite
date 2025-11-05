@@ -131,6 +131,7 @@ export default function Patients() {
         subscription.unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionStatus]);
 
   const {
@@ -166,7 +167,7 @@ export default function Patients() {
   // Aplicar filtros avançados nos dados
   // Filtrar e ordenar pacientes
   const filteredAndSortedPatients = useMemo(() => {
-    let filtered = patients.filter(patient => {
+    const filtered = patients.filter(patient => {
       // Filtro por termo de busca
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();

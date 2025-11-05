@@ -30,14 +30,19 @@ interface WoundUpdateNotification {
 }
 
 class WhatsAppService {
-  private static baseURL = 'http://localhost:8080'; // URL da Evolution API
-  private static instanceName = 'wound-care-instance';
-  private static apiKey = 'your-api-key-here';
+  private baseUrl: string;
+  private instanceName: string;
+  private apiKey: string;
 
-  // Verificar se a instância está conectada
-  static async checkConnection(): Promise<boolean> {
+  constructor(opts?: { baseUrl?: string; instanceName?: string; apiKey?: string }) {
+    this.baseUrl = opts?.baseUrl || (import.meta.env.VITE_EVOLUTION_API_URL as string) || 'http://localhost:8080';
+    this.instanceName = opts?.instanceName || (import.meta.env.VITE_EVOLUTION_INSTANCE as string) || 'wound-care-instance';
+    this.apiKey = opts?.apiKey || (import.meta.env.VITE_EVOLUTION_API_KEY as string) || '';
+  }
+
+  async checkConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/instance/connectionState/${this.instanceName}`, {
+      const response = await fetch(`${this.baseUrl}/instance/connectionState/${this.instanceName}`, {
         headers: {
           'apikey': this.apiKey
         }
@@ -50,44 +55,6 @@ class WhatsAppService {
       return false;
     } catch (error) {
       console.error('Erro ao verificar conexão:', error);
-      return false;
-    }
-  }
-
-  // Gerar QR Code para conexão
-  static async getQRCode(): Promise<string> {
-    try {
-      const response = await fetch(`${this.baseURL}/instance/connect/${this.instanceName}`, {
-        method: 'GET',
-        headers: {
-          'apikey': this.apiKey
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        return data.base64; // QR Code em base64
-      }
-      throw new Error('Erro ao gerar QR Code');
-    } catch (error) {
-      console.error('Erro ao gerar QR Code:', error);
-      throw error;
-    }
-  }
-
-  // Desconectar instância
-  static async disconnect(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseURL}/instance/logout/${this.instanceName}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': this.apiKey
-        }
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error('Erro ao desconectar:', error);
       return false;
     }
   }
@@ -164,7 +131,7 @@ class WhatsAppService {
 
   // Enviar lembrete de consulta
   async sendAppointmentReminder(reminder: AppointmentReminder): Promise<boolean> {
-    const message = `🏥 *Lembrete de Consulta - WoundCare*
+    const message = `🏥 *Lembrete de Consulta - Central de Pele AI*
 
 Olá, ${reminder.patientName}! 
 
@@ -178,14 +145,14 @@ Por favor, chegue com 15 minutos de antecedência.
 
 Em caso de dúvidas, entre em contato conosco.
 
-*WoundCare - Cuidando da sua saúde* 🩺`;
+*Central de Pele AI - Cuidando da sua saúde* 🩺`;
 
     return await this.sendTextMessage(reminder.patientPhone, message);
   }
 
   // Enviar notificação de atualização de ferida
   async sendWoundUpdateNotification(notification: WoundUpdateNotification): Promise<boolean> {
-    let message = `🔔 *Atualização - WoundCare*
+    let message = `🔔 *Atualização - Central de Pele AI*
 
 Olá, ${notification.patientName}!
 
@@ -210,7 +177,7 @@ ${notification.details}`;
 
 Acesse o portal do paciente para mais detalhes: ${window.location.origin}/portal
 
-*WoundCare - Cuidando da sua saúde* 🩺`;
+*Central de Pele AI - Cuidando da sua saúde* 🩺`;
 
     return await this.sendTextMessage(notification.patientPhone, message);
   }
@@ -221,7 +188,7 @@ Acesse o portal do paciente para mais detalhes: ${window.location.origin}/portal
     description: string;
     paymentId: string;
   }): Promise<boolean> {
-    const message = `✅ *Pagamento Confirmado - WoundCare*
+    const message = `✅ *Pagamento Confirmado - Central de Pele AI*
 
 Olá, ${patientName}!
 
@@ -231,16 +198,16 @@ Seu pagamento foi processado com sucesso:
 📝 Descrição: ${paymentDetails.description}
 🔢 ID do Pagamento: ${paymentDetails.paymentId}
 
-Obrigado por escolher a WoundCare!
+Obrigado por escolher a Central de Pele AI!
 
-*WoundCare - Cuidando da sua saúde* 🩺`;
+*Central de Pele AI - Cuidando da sua saúde* 🩺`;
 
     return await this.sendTextMessage(patientPhone, message);
   }
 
   // Enviar mensagem de boas-vindas
   async sendWelcomeMessage(patientName: string, patientPhone: string): Promise<boolean> {
-    const message = `🎉 *Bem-vindo(a) à WoundCare!*
+    const message = `🎉 *Bem-vindo(a) à Central de Pele AI!*
 
 Olá, ${patientName}!
 
@@ -255,14 +222,14 @@ Estamos aqui para cuidar da sua saúde!
 
 Em caso de dúvidas, responda esta mensagem.
 
-*WoundCare - Cuidando da sua saúde* 🩺`;
+*Central de Pele AI - Cuidando da sua saúde* 🩺`;
 
     return await this.sendTextMessage(patientPhone, message);
   }
 
   // Enviar alerta de emergência
   async sendEmergencyAlert(patientName: string, patientPhone: string, alertType: string, details: string): Promise<boolean> {
-    const message = `🚨 *ALERTA MÉDICO - WoundCare*
+    const message = `🚨 *ALERTA MÉDICO - Central de Pele AI*
 
 ${patientName}, detectamos uma situação que requer atenção:
 
@@ -273,7 +240,7 @@ ${patientName}, detectamos uma situação que requer atenção:
 
 📞 Em caso de emergência, ligue 192 (SAMU)
 
-*WoundCare - Cuidando da sua saúde* 🩺`;
+*Central de Pele AI - Cuidando da sua saúde* 🩺`;
 
     return await this.sendTextMessage(patientPhone, message);
   }

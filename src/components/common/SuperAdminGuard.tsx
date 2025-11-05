@@ -105,25 +105,6 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({
   );
 };
 
-/**
- * Hook para verificar se o usuário pode acessar funcionalidades de SuperAdmin
- */
-export const useSuperAdminAccess = () => {
-  const { isSuperAdmin, getAccessDeniedMessage } = usePermissions();
-
-  const checkAccess = (module?: string): { hasAccess: boolean; message?: string } => {
-    const hasAccess = isSuperAdmin();
-    return {
-      hasAccess,
-      message: hasAccess ? undefined : getAccessDeniedMessage(module)
-    };
-  };
-
-  return {
-    isSuperAdmin: isSuperAdmin(),
-    checkAccess
-  };
-};
 
 /**
  * Componente inline para proteger elementos específicos

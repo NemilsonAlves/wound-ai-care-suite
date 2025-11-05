@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -166,18 +166,7 @@ export function SmartScheduler({
 
   const selectedProfessionalData = professionals.find(prof => prof.id === selectedProfessional);
 
-  useEffect(() => {
-    if (selectedProfessional && selectedDate) {
-      generateAvailableSlots();
-    }
-  }, [selectedProfessional, selectedDate, existingAppointments]);
-
-  const getDayOfWeek = (date: Date) => {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    return days[date.getDay()];
-  };
-
-  const generateAvailableSlots = () => {
+  const generateAvailableSlots = useCallback(() => {
     if (!selectedProfessionalData) return;
 
     const dayOfWeek = getDayOfWeek(selectedDate);
@@ -249,7 +238,25 @@ export function SmartScheduler({
     }
 
     setAvailableSlots(slots);
+  }, [
+    selectedProfessionalData,
+    selectedDate,
+    selectedSpecialty,
+    existingAppointments,
+    selectedProfessional
+  ]);
+
+  useEffect(() => {
+    if (selectedProfessional && selectedDate) {
+      generateAvailableSlots();
+    }
+  }, [selectedProfessional, selectedDate, generateAvailableSlots]);
+
+  const getDayOfWeek = (date: Date) => {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[date.getDay()];
   };
+
 
   const handleScheduleAppointment = async () => {
     if (!patientName.trim()) {

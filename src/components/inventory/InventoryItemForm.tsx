@@ -19,7 +19,26 @@ export const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   onSave,
   onCancel
 }) => {
-  const [formData, setFormData] = useState({
+  type InventoryFormData = {
+    name: string;
+    description: string;
+    category_id: string;
+    brand: string;
+    supplier: string;
+    unit: string;
+    current_stock: number;
+    minimum_stock: number;
+    maximum_stock: number;
+    unit_cost: number;
+    barcode: string;
+    expiration_date: string;
+    batch_number: string;
+    location: string;
+    is_active: boolean;
+    requires_prescription: boolean;
+  };
+
+  const [formData, setFormData] = useState<InventoryFormData>({
     name: '',
     description: '',
     category_id: '',
@@ -72,7 +91,7 @@ export const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
     onSave(submitData);
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof InventoryFormData, value: InventoryFormData[keyof InventoryFormData]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

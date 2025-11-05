@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { usePatientAuth } from '@/contexts/PatientAuthContext';
+import { usePatientAuth } from '@/contexts/PatientAuthContextBase';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface PatientRouteProps {

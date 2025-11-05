@@ -165,7 +165,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="wound_type">Tipo de Lesão</Label>
-              <Select onValueChange={(value) => setValue('wound_type', value as any)}>
+              <Select onValueChange={(value) => setValue('wound_type', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
@@ -199,7 +199,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
 
             <div>
               <Label htmlFor="wound_stage">Estágio</Label>
-              <Select onValueChange={(value) => setValue('wound_stage', value as any)}>
+              <Select onValueChange={(value) => setValue('wound_stage', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o estágio" />
                 </SelectTrigger>
@@ -270,7 +270,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
           <CardContent className="space-y-4">
             <div>
               <Label>Quantidade</Label>
-              <Select onValueChange={(value) => setValue('exudate_amount', value as any)}>
+              <Select onValueChange={(value) => setValue('exudate_amount', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a quantidade" />
                 </SelectTrigger>
@@ -285,7 +285,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
 
             <div>
               <Label>Tipo</Label>
-              <Select onValueChange={(value) => setValue('exudate_type', value as any)}>
+              <Select onValueChange={(value) => setValue('exudate_type', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
@@ -308,7 +308,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
           <CardContent className="space-y-4">
             <div>
               <Label>Leito da Ferida</Label>
-              <Select onValueChange={(value) => setValue('wound_bed', value as any)}>
+              <Select onValueChange={(value) => setValue('wound_bed', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo de leito" />
                 </SelectTrigger>
@@ -324,7 +324,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
 
             <div>
               <Label>Bordas</Label>
-              <Select onValueChange={(value) => setValue('wound_edges', value as any)}>
+              <Select onValueChange={(value) => setValue('wound_edges', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo de bordas" />
                 </SelectTrigger>
@@ -339,7 +339,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
 
             <div>
               <Label>Pele Perilesional</Label>
-              <Select onValueChange={(value) => setValue('periwound_skin', value as any)}>
+              <Select onValueChange={(value) => setValue('periwound_skin', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o estado da pele" />
                 </SelectTrigger>
@@ -375,7 +375,7 @@ export function EvolutionForm({ patientId, onSuccess, onCancel }: EvolutionFormP
 
           <div>
             <Label>Odor</Label>
-            <Select onValueChange={(value) => setValue('odor', value as any)}>
+            <Select onValueChange={(value) => setValue('odor', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a intensidade do odor" />
               </SelectTrigger>

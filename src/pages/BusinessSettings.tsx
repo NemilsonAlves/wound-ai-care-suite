@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useClinicConfig } from '@/contexts/ClinicConfigContext';
+import { useClinicConfig } from '@/contexts/ClinicConfigContextBase';
 import { Settings, Stethoscope, Scissors, Heart, Users, DollarSign, FileText, Package } from 'lucide-react';
 import { toast } from 'sonner';
 

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { aiProviderService } from './aiProviderService';
 
 export interface WoundAnalysis {
   id: string;
@@ -74,6 +75,40 @@ export class AIAnalysisService {
 
       // Mock AI analysis results - In production, replace with actual AI service call
       const mockAnalysis = this.generateMockAnalysis(request.evolution_id, publicUrl);
+
+      // Enrich recommendations using the unified AI provider if configured
+      try {
+        if (aiProviderService.isConfigured()) {
+          const ar = mockAnalysis.analysis_results;
+          const prompt = `Você é um assistente clínico especializado em feridas. Com base nos dados fornecidos, gere 3 recomendações práticas e objetivas para conduta de enfermagem, separadas por " | ".\n\n` +
+            `Dados da ferida:\n` +
+            `- Tipo: ${ar.wound_type}\n` +
+            `- Estágio: ${ar.wound_stage}\n` +
+            `- Dimensões (cm): comprimento=${ar.dimensions.length}, largura=${ar.dimensions.width}, profundidade=${ar.dimensions.depth ?? 0}, área=${ar.dimensions.area}\n` +
+            `- Tecidos (%): granulação=${ar.tissue_types.granulation}, necrose=${ar.tissue_types.necrotic}, fibrina=${ar.tissue_types.fibrin}, epitelização=${ar.tissue_types.epithelial}\n` +
+            `- Exsudato: quantidade=${ar.exudate.amount}, tipo=${ar.exudate.type}\n` +
+            `- Bordas: condição=${ar.edges.condition}, ligação=${ar.edges.attachment}\n` +
+            `- Infecção presente: ${ar.infection_signs.present ? 'sim' : 'não'}; indicadores=${ar.infection_signs.indicators.join(', ') || 'nenhum'}\n` +
+            `- Evolução: status=${ar.healing_progress.status}, percentual=${ar.healing_progress.percentage}%\n\n` +
+            `Formato de saída: apenas as 3 recomendações, curtas, no formato "Rec 1 | Rec 2 | Rec 3".`;
+
+          const text = await aiProviderService.chat({
+            messages: [
+              { role: 'system', content: 'Forneça recomendações clínicas sucintas e seguras conforme boas práticas.' },
+              { role: 'user', content: prompt },
+            ],
+            temperature: 0.2,
+          });
+
+          const parts = text.split('|').map(s => s.trim()).filter(Boolean);
+          if (parts.length >= 2) {
+            mockAnalysis.analysis_results.recommendations = parts.slice(0, 3);
+          }
+        }
+      } catch (aiErr) {
+        // Se houver falha na IA, mantemos as recomendações simuladas
+        console.warn('Falha ao gerar recomendações via IA, usando fallback:', aiErr);
+      }
 
       // Save analysis to database
       const { data, error } = await supabase

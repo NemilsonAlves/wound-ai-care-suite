@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -43,23 +43,20 @@ export const AIComparisonChart: React.FC<AIComparisonChartProps> = ({
 }) => {
   const [analyses, setAnalyses] = useState<WoundAnalysis[]>(propAnalyses || []);
   const [loading, setLoading] = useState(false);
-  const [comparison, setComparison] = useState<any>(null);
+  interface AnalysesComparison {
+    timeline: WoundAnalysis[];
+    progress_summary: {
+      overall_trend: 'improving' | 'stable' | 'deteriorating';
+      area_change: number;
+      healing_percentage_change: number;
+      key_changes: string[];
+    };
+  }
+  const [comparison, setComparison] = useState<AnalysesComparison | null>(null);
   const [selectedMetric, setSelectedMetric] = useState('area');
   const [chartType, setChartType] = useState('line');
 
-  useEffect(() => {
-    if (!propAnalyses) {
-      loadAnalyses();
-    }
-  }, [evolutionId, propAnalyses]);
-
-  useEffect(() => {
-    if (analyses.length >= 2) {
-      generateComparison();
-    }
-  }, [analyses]);
-
-  const loadAnalyses = async () => {
+  const loadAnalyses = useCallback(async () => {
     try {
       setLoading(true);
       const data = await AIAnalysisService.getAnalysesByEvolution(evolutionId);
@@ -69,9 +66,15 @@ export const AIComparisonChart: React.FC<AIComparisonChartProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [evolutionId]);
 
-  const generateComparison = async () => {
+  useEffect(() => {
+    if (!propAnalyses) {
+      loadAnalyses();
+    }
+  }, [evolutionId, propAnalyses, loadAnalyses]);
+
+  const generateComparison = useCallback(async () => {
     if (analyses.length < 2) return;
 
     try {
@@ -81,7 +84,13 @@ export const AIComparisonChart: React.FC<AIComparisonChartProps> = ({
     } catch (error) {
       console.error('Erro ao gerar comparação:', error);
     }
-  };
+  }, [analyses]);
+
+  useEffect(() => {
+    if (analyses.length >= 2) {
+      generateComparison();
+    }
+  }, [analyses, generateComparison]);
 
   const prepareChartData = () => {
     return analyses

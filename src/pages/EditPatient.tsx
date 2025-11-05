@@ -88,7 +88,8 @@ export default function EditPatient() {
         setValue('city', patientData.city);
         setValue('state', patientData.state);
         setValue('zip_code', patientData.zip_code);
-        setValue('specialty', patientData.specialty);
+                const normalizedSpecialty = (SPECIALTIES.find(s => s.toLowerCase() === (patientData.specialty || '').toLowerCase()) || patientData.specialty) as typeof SPECIALTIES[number];
+        setValue('specialty', normalizedSpecialty);
         setValue('emergency_contact_name', patientData.emergency_contact_name || '');
         setValue('emergency_contact_phone', patientData.emergency_contact_phone || '');
         setValue('medical_history', patientData.medical_history || '');
@@ -280,7 +281,7 @@ export default function EditPatient() {
 
               <div className="space-y-2">
                 <Label htmlFor="gender">Gênero *</Label>
-                <Select onValueChange={(value) => setValue('gender', value as any)}>
+                <Select onValueChange={(value) => setValue('gender', value as EditPatientFormData['gender'])}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o gênero" />
                   </SelectTrigger>
@@ -429,7 +430,7 @@ export default function EditPatient() {
                 </SelectTrigger>
                 <SelectContent>
                   {SPECIALTIES.map((specialty) => (
-                    <SelectItem key={specialty} value={specialty.toLowerCase()}>
+                    <SelectItem key={specialty} value={specialty}>
                       {specialty}
                     </SelectItem>
                   ))}

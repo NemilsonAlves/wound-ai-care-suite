@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,9 +42,28 @@ export function AuditLogsTab() {
     end_date: new Date().toISOString().split('T')[0]
   });
 
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      if (activeView === 'logs') {
+        const logs = await ReportsService.getAuditLogs(filters);
+        setAuditLogs(logs);
+      } else {
+        const activity = await ReportsService.getUserActivityReport(filters);
+        setUserActivity(activity);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados de auditoria:', error);
+      toast.error('Erro ao carregar dados de auditoria');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, activeView]);
+
   useEffect(() => {
     loadData();
-  }, [filters, activeView]);
+  }, [loadData]);
 
   const loadData = async () => {
     try {
@@ -105,8 +124,10 @@ export function AuditLogsTab() {
     }
   };
 
+  type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
   const getActionBadge = (action: string) => {
-    const actionMap: Record<string, { variant: any; label: string }> = {
+    const actionMap: Record<string, { variant: BadgeVariant; label: string }> = {
       'create': { variant: 'default', label: 'Criação' },
       'update': { variant: 'secondary', label: 'Atualização' },
       'delete': { variant: 'destructive', label: 'Exclusão' },
@@ -121,7 +142,7 @@ export function AuditLogsTab() {
   };
 
   const getModuleBadge = (module: string) => {
-    const moduleMap: Record<string, { variant: any; label: string }> = {
+    const moduleMap: Record<string, { variant: BadgeVariant; label: string }> = {
       'patients': { variant: 'default', label: 'Pacientes' },
       'consultations': { variant: 'secondary', label: 'Consultas' },
       'procedures': { variant: 'outline', label: 'Procedimentos' },
@@ -136,7 +157,7 @@ export function AuditLogsTab() {
   };
 
   const getRoleBadge = (role: string) => {
-    const roleMap: Record<string, { variant: any; label: string }> = {
+    const roleMap: Record<string, { variant: BadgeVariant; label: string }> = {
       'admin': { variant: 'destructive', label: 'Administrador' },
       'doctor': { variant: 'default', label: 'Médico' },
       'nurse': { variant: 'secondary', label: 'Enfermeiro' },

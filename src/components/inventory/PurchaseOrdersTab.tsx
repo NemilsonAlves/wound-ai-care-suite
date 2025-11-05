@@ -38,7 +38,7 @@ import { InventoryService } from '@/services/inventoryService';
 import { PurchaseOrder, PurchaseOrderItem, Supplier, InventoryItem } from '@/types/inventory';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PermissionGuard } from '@/components/common/PermissionGuard';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContextBase';
 
 interface PurchaseOrdersTabProps {
   onDataChange: () => void;
@@ -214,7 +214,7 @@ const PurchaseOrdersTab = ({ onDataChange }: PurchaseOrdersTabProps) => {
     setOrderItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateOrderItem = (index: number, field: string, value: any) => {
+  const updateOrderItem = (index: number, field: string, value: string | number | null) => {
     setOrderItems(prev => prev.map((item, i) => {
       if (i === index) {
         const updated = { ...item, [field]: value };
@@ -350,7 +350,7 @@ const PurchaseOrdersTab = ({ onDataChange }: PurchaseOrdersTabProps) => {
                           value={formData.status}
                           onChange={(e) => setFormData(prev => ({ 
                             ...prev, 
-                            status: e.target.value as any 
+        status: e.target.value as string
                           }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >

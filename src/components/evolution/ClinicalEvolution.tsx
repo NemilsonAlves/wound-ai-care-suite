@@ -553,7 +553,7 @@ const ClinicalEvolution: React.FC<ClinicalEvolutionProps> = ({
                       input.type = 'file';
                       input.multiple = true;
                       input.accept = 'image/*';
-                      input.onchange = (e) => handlePhotoUpload(e as any, 'after');
+                      input.onchange = (e: Event) => handlePhotoUpload(e as unknown as React.ChangeEvent<HTMLInputElement>, 'after');
                       input.click();
                     }}
                     className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors"

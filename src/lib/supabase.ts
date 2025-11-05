@@ -254,7 +254,7 @@ export interface Database {
           professional_id: string
           appointment_id?: string
           specialty: 'curativos' | 'dermatologia' | 'cirurgias' | 'Curativos' | 'Dermatologia' | 'Cirurgias'
-          evolution_data: any
+          evolution_data: unknown
           photos: string[]
           ai_analysis?: string
           version: number
@@ -267,7 +267,7 @@ export interface Database {
           professional_id: string
           appointment_id?: string
           specialty: 'curativos' | 'dermatologia' | 'cirurgias' | 'Curativos' | 'Dermatologia' | 'Cirurgias'
-          evolution_data: any
+          evolution_data: unknown
           photos?: string[]
           ai_analysis?: string
           version?: number
@@ -280,7 +280,7 @@ export interface Database {
           professional_id?: string
           appointment_id?: string
           specialty?: 'curativos' | 'dermatologia' | 'cirurgias' | 'Curativos' | 'Dermatologia' | 'Cirurgias'
-          evolution_data?: any
+          evolution_data?: unknown
           photos?: string[]
           ai_analysis?: string
           version?: number
@@ -402,8 +402,8 @@ export interface Database {
           action: string
           table_name: string
           record_id: string
-          old_values?: any
-          new_values?: any
+          old_values?: unknown
+          new_values?: unknown
           ip_address: string
           user_agent: string
           created_at: string
@@ -414,8 +414,8 @@ export interface Database {
           action: string
           table_name: string
           record_id: string
-          old_values?: any
-          new_values?: any
+          old_values?: unknown
+          new_values?: unknown
           ip_address: string
           user_agent: string
           created_at?: string
@@ -426,8 +426,8 @@ export interface Database {
           action?: string
           table_name?: string
           record_id?: string
-          old_values?: any
-          new_values?: any
+          old_values?: unknown
+          new_values?: unknown
           ip_address?: string
           user_agent?: string
         }

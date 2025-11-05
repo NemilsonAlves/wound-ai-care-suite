@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContextBase'
 import { useNavigate } from 'react-router-dom'
 import { MockAuthService } from '@/services/mockAuthService'
 import { Stethoscope, User, Shield, UserCheck } from 'lucide-react'
